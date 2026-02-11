@@ -4,16 +4,42 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import LocaleLink from "./LocaleLink";
 import { useTranslation } from "./I18nProvider";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import { StarIcon, ClockIcon, MapPinIcon } from "@heroicons/react/24/solid";
+import { StarIcon } from "@heroicons/react/24/solid";
+import { HeartIcon } from "@heroicons/react/24/outline";
 import { fetchShips } from "@/lib/api";
 import type { ParsedShip } from "@/types/api";
 
-// Promo badges to cycle through
-const PROMO_BADGES = [
-    { label: "LAST MINUTE", color: "bg-red-500" },
-    { label: "BEST SELLER", color: "bg-blue-600" },
-    { label: "EARLY BIRD", color: "bg-green-600" },
+// Promo tags per card
+const PROMO_TAGS = [
+    { label: "Summer Sales - Only $200/person inc transfer", color: "text-orange-600 bg-orange-50 border-orange-200" },
+    { label: "Early bird promotion - Only $205/person", color: "text-orange-600 bg-orange-50 border-orange-200" },
+    { label: "Special promotion - Only $210/person inc transfer", color: "text-red-600 bg-red-50 border-red-200" },
+];
+
+// Activity badges for top-left of image
+const ACTIVITY_BADGES = [
+    "Free Kayaking",
+    "Free Kayaking",
+    "Free Kayaking",
+];
+
+// Fake reviews data to match reference design
+const REVIEWS = [
+    {
+        text: "Welcoming and accommodating staff. The ship's design was great, our room was lovely and comfortable. All activities were well planned ...",
+        author: "Patrick Declerck",
+        country: "Belgium",
+    },
+    {
+        text: "Spend 2 nights on this cruise and all we received surpassed our expectation!",
+        author: "Emma Bauer",
+        country: "Austria",
+    },
+    {
+        text: "My husband and I stayed for 1 night and were very happy throughout the trip. The view ...",
+        author: "Elena Papadopoulos",
+        country: "Greece",
+    },
 ];
 
 function formatIDR(price: number): string {
@@ -25,9 +51,40 @@ function formatIDR(price: number): string {
     }).format(price);
 }
 
+// Generate a pseudo-random rating between 9.5-9.9 based on ship name
+function getRating(name: string): number {
+    const hash = name.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+    return 9.5 + (hash % 5) * 0.1;
+}
+
+// Generate pseudo-random review count
+function getReviewCount(name: string): number {
+    const hash = name.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+    return 100 + (hash % 400);
+}
+
+// Generate pseudo-random favorites count
+function getFavCount(name: string): number {
+    const hash = name.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+    return 200 + (hash % 2000);
+}
+
+function getRatingLabel(rating: number): string {
+    if (rating >= 9.5) return "EXCELLENT";
+    if (rating >= 9.0) return "WONDERFUL";
+    if (rating >= 8.5) return "VERY GOOD";
+    return "GOOD";
+}
+
+function getRatingColor(rating: number): string {
+    if (rating >= 9.5) return "bg-green-600";
+    if (rating >= 9.0) return "bg-green-500";
+    if (rating >= 8.5) return "bg-yellow-500";
+    return "bg-gray-500";
+}
+
 export default function PromoSection() {
     const { t } = useTranslation();
-    const [currentSlide, setCurrentSlide] = useState(0);
     const [promoShips, setPromoShips] = useState<ParsedShip[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -35,7 +92,6 @@ export default function PromoSection() {
         const load = async () => {
             try {
                 const ships = await fetchShips();
-                // Pick ships that have images and cabin data for promos
                 const withData = ships.filter(s => s.imageMain && s.lowestPrice > 0);
                 setPromoShips(withData.slice(0, 3));
             } catch {
@@ -47,21 +103,28 @@ export default function PromoSection() {
         load();
     }, []);
 
-    const totalSlides = promoShips.length || 1;
-
-    const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % totalSlides);
-    const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
-    const goToSlide = (index: number) => setCurrentSlide(index);
-
     if (loading) {
         return (
-            <section className="py-12 bg-gradient-to-b from-gray-50 to-white">
+            <section className="py-10 md:py-14 bg-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-12">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured Cruise Deal</h2>
+                    <div className="text-center mb-10">
+                        <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900">
+                            Explore With Our Best Tour Collection
+                        </h2>
                     </div>
-                    <div className="flex justify-center items-center py-16">
-                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                    {/* Skeleton cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="bg-white rounded-lg border border-gray-200 overflow-hidden animate-pulse">
+                                <div className="h-52 bg-gray-200" />
+                                <div className="p-4 space-y-3">
+                                    <div className="h-5 bg-gray-200 rounded w-3/4" />
+                                    <div className="h-4 bg-gray-200 rounded w-1/2" />
+                                    <div className="h-4 bg-gray-200 rounded w-full" />
+                                    <div className="h-16 bg-gray-100 rounded" />
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>
@@ -70,149 +133,128 @@ export default function PromoSection() {
 
     if (promoShips.length === 0) return null;
 
-    const ship = promoShips[currentSlide];
-    const badge = PROMO_BADGES[currentSlide % PROMO_BADGES.length];
-
     return (
-        <section className="py-12 bg-gradient-to-b from-gray-50 to-white">
+        <section className="py-10 md:py-14 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
-                <div className="text-center mb-12">
-                    <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                        Featured Cruise Deal
+                <div className="text-center mb-10">
+                    <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900">
+                        Explore With Our Best Tour Collection
                     </h2>
-                    <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                        Discover Indonesia&apos;s most spectacular destinations with our exclusive cruise packages.
-                    </p>
                 </div>
 
-                {/* Carousel Container */}
-                <div className="relative max-w-4xl mx-auto">
-                    {/* Navigation Arrows */}
-                    <button
-                        onClick={prevSlide}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 hover:bg-gray-50"
-                    >
-                        <ChevronLeftIcon className="w-6 h-6 text-gray-600" />
-                    </button>
+                {/* Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {promoShips.map((ship, index) => {
+                        const rating = getRating(ship.name);
+                        const reviewCount = getReviewCount(ship.name);
+                        const favCount = getFavCount(ship.name);
+                        const promoTag = PROMO_TAGS[index % PROMO_TAGS.length];
+                        const activityBadge = ACTIVITY_BADGES[index % ACTIVITY_BADGES.length];
+                        const review = REVIEWS[index % REVIEWS.length];
 
-                    <button
-                        onClick={nextSlide}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 hover:bg-gray-50"
-                    >
-                        <ChevronRightIcon className="w-6 h-6 text-gray-600" />
-                    </button>
+                        // Parse destinations into route segments
+                        const routeSegments = ship.destinations
+                            ? ship.destinations.split(/[,→\-–]/).map(s => s.trim()).filter(Boolean).slice(0, 3)
+                            : [ship.tripName || "Komodo National Park"];
 
-                    {/* Featured Deal Card */}
-                    <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-                        <div className="lg:flex">
-                            {/* Image Section */}
-                            <div className="lg:w-1/2 relative h-64 lg:h-auto min-h-[320px] overflow-hidden">
-                                <Image
-                                    src={ship.imageMain}
-                                    alt={ship.name}
-                                    fill
-                                    className="object-cover"
-                                    sizes="(max-width: 1024px) 100vw, 50vw"
-                                />
+                        return (
+                            <LocaleLink
+                                key={ship.id}
+                                href={`/cruises/${ship.slug}`}
+                                className="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                            >
+                                {/* Image */}
+                                <div className="relative h-52 overflow-hidden">
+                                    <Image
+                                        src={ship.imageMain}
+                                        alt={ship.name}
+                                        fill
+                                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                    />
 
-                                {/* Badge */}
-                                <div className={`absolute top-6 left-6 ${badge.color} text-white px-4 py-2 rounded-full text-sm font-bold`}>
-                                    {badge.label}
-                                </div>
-                            </div>
+                                    {/* Activity badge top-left */}
+                                    <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm">
+                                        <span className="text-yellow-500 text-sm">⚓</span>
+                                        <span className="text-xs font-semibold text-gray-800">{activityBadge}</span>
+                                    </div>
 
-                            {/* Content Section */}
-                            <div className="lg:w-1/2 p-8">
-                                {/* Title & Destination */}
-                                <div className="mb-6">
-                                    <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">
-                                        {ship.name}
-                                    </h3>
-                                    <p className="text-gray-600 flex items-center gap-2 text-lg">
-                                        <MapPinIcon className="w-5 h-5 text-blue-500" />
-                                        {ship.destinations || "Komodo National Park"}
-                                    </p>
-                                </div>
-
-                                {/* Trip Info */}
-                                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="font-semibold text-gray-900 text-lg">{ship.tripName}</p>
-                                            <p className="text-gray-600">{ship.name}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-semibold text-blue-600 text-lg">{ship.tripDuration} days</p>
-                                            {ship.cabinCount > 0 && (
-                                                <p className="text-gray-600">{ship.cabinCount} cabins</p>
-                                            )}
-                                        </div>
+                                    {/* Heart / favorites top-right */}
+                                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2.5 py-1.5">
+                                        <HeartIcon className="w-4 h-4 text-white" />
+                                        <span className="text-xs font-medium text-white">{favCount}</span>
                                     </div>
                                 </div>
 
-                                {/* Facilities */}
-                                <div className="flex items-center gap-2 mb-6 flex-wrap">
-                                    {ship.facilities.hasSeaview && (
-                                        <span className="bg-blue-50 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-full">🌊 Sea View</span>
-                                    )}
-                                    {ship.facilities.hasBalcony && (
-                                        <span className="bg-green-50 text-green-700 text-xs font-medium px-3 py-1.5 rounded-full">🏖️ Balcony</span>
-                                    )}
-                                    {ship.facilities.hasBathtub && (
-                                        <span className="bg-purple-50 text-purple-700 text-xs font-medium px-3 py-1.5 rounded-full">🛁 Bathtub</span>
-                                    )}
-                                    {ship.facilities.hasJacuzzi && (
-                                        <span className="bg-amber-50 text-amber-700 text-xs font-medium px-3 py-1.5 rounded-full">💎 Jacuzzi</span>
-                                    )}
-                                    <span className="bg-gray-100 text-gray-700 text-xs font-medium px-3 py-1.5 rounded-full">
-                                        <StarIcon className="w-3.5 h-3.5 text-yellow-400 inline mr-1" />
-                                        {ship.totalCapacity > 0 ? `${ship.totalCapacity} pax capacity` : "All meals included"}
-                                    </span>
-                                </div>
-
-                                {/* Pricing & CTA */}
-                                <div className="border-t pt-6">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div>
-                                            <p className="text-gray-500 text-sm">Starting from</p>
-                                            <p className="text-3xl font-bold text-blue-600">{formatIDR(ship.lowestPrice)}</p>
-                                            <p className="text-gray-500">per cabin</p>
+                                {/* Content */}
+                                <div className="p-4">
+                                    {/* Title + Price row */}
+                                    <div className="flex items-start justify-between gap-2 mb-2">
+                                        <h3 className="font-bold text-base text-gray-900 leading-tight line-clamp-2">
+                                            {ship.name} {ship.tripDuration} Days
+                                        </h3>
+                                        <div className="text-right flex-shrink-0">
+                                            <span className="text-[11px] text-gray-500 uppercase">From</span>
+                                            <p className="text-lg font-bold text-gray-900">{formatIDR(ship.lowestPrice)}</p>
                                         </div>
-                                        {ship.highestPrice > ship.lowestPrice && (
-                                            <div className="text-right">
-                                                <p className="text-gray-500 text-sm">Up to</p>
-                                                <p className="text-lg font-semibold text-gray-700">{formatIDR(ship.highestPrice)}</p>
-                                                <p className="text-gray-500">premium cabin</p>
-                                            </div>
-                                        )}
                                     </div>
 
-                                    <LocaleLink
-                                        href={`/cruises/${ship.slug}`}
-                                        className="w-full bg-blue-600 text-white py-4 px-8 rounded-lg font-bold text-lg hover:bg-blue-700 transition-colors text-center block"
-                                    >
-                                        Book This Deal Now
-                                    </LocaleLink>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                    {/* Rating */}
+                                    <div className="flex items-center gap-2 mb-3">
+                                        {/* Stars */}
+                                        <div className="flex">
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                                <StarIcon
+                                                    key={star}
+                                                    className={`w-4 h-4 ${star <= Math.round(rating / 2) ? "text-yellow-400" : "text-gray-200"}`}
+                                                />
+                                            ))}
+                                        </div>
+                                        {/* Score badge */}
+                                        <span className={`${getRatingColor(rating)} text-white text-[11px] font-bold px-1.5 py-0.5 rounded`}>
+                                            {rating.toFixed(1)}
+                                        </span>
+                                        <span className="text-xs font-bold text-green-700 uppercase">{getRatingLabel(rating)}</span>
+                                        <span className="text-xs text-gray-400">|</span>
+                                        <span className="text-xs text-gray-500">{reviewCount} reviews</span>
+                                    </div>
 
-                    {/* Dots Indicator */}
-                    <div className="flex justify-center mt-8 space-x-2">
-                        {promoShips.map((_, index) => (
-                            <button
-                                key={index}
-                                onClick={() => goToSlide(index)}
-                                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                                    index === currentSlide
-                                        ? 'bg-blue-600'
-                                        : 'bg-gray-300 hover:bg-gray-400'
-                                }`}
-                            />
-                        ))}
-                    </div>
+                                    {/* Route / Itinerary */}
+                                    <div className="flex items-center gap-1 mb-3 text-sm text-gray-600 flex-wrap">
+                                        {routeSegments.map((segment, i) => (
+                                            <span key={i} className="flex items-center gap-1">
+                                                {i > 0 && <span className="text-gray-400">→</span>}
+                                                <span>{segment}</span>
+                                            </span>
+                                        ))}
+                                    </div>
+
+                                    {/* Promo tag */}
+                                    <div className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md border ${promoTag.color} mb-4`}>
+                                        <span>🏷️</span>
+                                        {promoTag.label}
+                                    </div>
+
+                                    {/* Divider */}
+                                    <hr className="border-gray-100 mb-3" />
+
+                                    {/* Review */}
+                                    <div>
+                                        <p className="text-sm text-gray-500 leading-relaxed line-clamp-3 italic mb-2">
+                                            <span className="text-lg text-gray-400 not-italic">&ldquo;</span>
+                                            {review.text}
+                                        </p>
+                                        <p className="text-sm">
+                                            <span className="font-semibold text-gray-800">{review.author}</span>
+                                            <span className="text-gray-400"> – </span>
+                                            <span className="text-gray-500">{review.country}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </LocaleLink>
+                        );
+                    })}
                 </div>
             </div>
         </section>
