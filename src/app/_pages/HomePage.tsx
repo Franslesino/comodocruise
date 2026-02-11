@@ -7,6 +7,7 @@
 import Hero from "@/components/Hero";
 import Navbar from "@/components/Navbar";
 import PromoSection from "@/components/PromoSection";
+import CruisePackagesSection from "@/components/CruisePackagesSection";
 import DestinationSection from "@/components/DestinationSection";
 import ShipsSection from "@/components/ShipsSection";
 import ExperienceSection from "@/components/ExperienceSection";
@@ -31,6 +32,11 @@ export default function HomePage() {
                 {/* Promo Section - Special Offers */}
                 <div id="promos" className="scroll-mt-24 md:scroll-mt-28">
                     <PromoSection />
+                </div>
+
+                {/* Cruise Packages Section */}
+                <div id="cruise-packages" className="scroll-mt-24 md:scroll-mt-28">
+                    <CruisePackagesSection />
                 </div>
 
                 {/* Destinations Section - Explore Indonesian Destinations */}

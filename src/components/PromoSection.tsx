@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import LocaleLink from "./LocaleLink";
 import { useTranslation } from "./I18nProvider";
 import { StarIcon } from "@heroicons/react/24/solid";
-import { HeartIcon } from "@heroicons/react/24/outline";
+import { HeartIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { fetchShips } from "@/lib/api";
 import type { ParsedShip } from "@/types/api";
 
@@ -14,12 +14,18 @@ const PROMO_TAGS = [
     { label: "Summer Sales - Only $200/person inc transfer", color: "text-orange-600 bg-orange-50 border-orange-200" },
     { label: "Early bird promotion - Only $205/person", color: "text-orange-600 bg-orange-50 border-orange-200" },
     { label: "Special promotion - Only $210/person inc transfer", color: "text-red-600 bg-red-50 border-red-200" },
+    { label: "Last Minute Deal - Save $50/person today", color: "text-red-600 bg-red-50 border-red-200" },
+    { label: "Weekend Special - Only $195/person", color: "text-orange-600 bg-orange-50 border-orange-200" },
+    { label: "Best Value - Only $185/person inc meals", color: "text-green-600 bg-green-50 border-green-200" },
 ];
 
 // Activity badges for top-left of image
 const ACTIVITY_BADGES = [
     "Free Kayaking",
     "Free Kayaking",
+    "Free Snorkeling",
+    "Free Kayaking",
+    "Free Activities",
     "Free Kayaking",
 ];
 
@@ -39,6 +45,21 @@ const REVIEWS = [
         text: "My husband and I stayed for 1 night and were very happy throughout the trip. The view ...",
         author: "Elena Papadopoulos",
         country: "Greece",
+    },
+    {
+        text: "It was our first trip to Vietnam and Halong Bay was definitely highly recommended. The scenery was fantastic. The tour ...",
+        author: "Silvia Russo",
+        country: "Italy",
+    },
+    {
+        text: "Hi Blue Dragon Tours, First of all, a sincere thanks to all of you for the enthusiastic communication and careful ...",
+        author: "Nancy",
+        country: "Canada",
+    },
+    {
+        text: "The crew was amazing! Food was excellent and the cabins were spacious. Would definitely book again for our next visit.",
+        author: "Michael Chen",
+        country: "Singapore",
     },
 ];
 
@@ -85,17 +106,23 @@ function getRatingColor(rating: number): string {
 
 export default function PromoSection() {
     const { t } = useTranslation();
-    const [promoShips, setPromoShips] = useState<ParsedShip[]>([]);
+    const [allShips, setAllShips] = useState<ParsedShip[]>([]);
     const [loading, setLoading] = useState(true);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(true);
+    const [currentPage, setCurrentPage] = useState(0);
 
     useEffect(() => {
         const load = async () => {
             try {
-                const ships = await fetchShips();
-                const withData = ships.filter(s => s.imageMain && s.lowestPrice > 0);
-                setPromoShips(withData.slice(0, 3));
+                const apiShips = await fetchShips();
+                // Filter ships with valid images and prices
+                const validShips = apiShips.filter(s => s.imageMain && s.lowestPrice > 0);
+                setAllShips(validShips);
             } catch {
-                console.error("Failed to load promo ships");
+                console.error("Failed to load promo ships from API");
+                setAllShips([]);
             } finally {
                 setLoading(false);
             }
@@ -103,15 +130,59 @@ export default function PromoSection() {
         load();
     }, []);
 
+    const checkScroll = useCallback(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        setCanScrollLeft(el.scrollLeft > 10);
+        setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+        
+        // Calculate current page based on scroll position
+        const cardWidth = el.querySelector<HTMLElement>("[data-promo-card]")?.offsetWidth ?? 350;
+        const gap = 24;
+        const scrollPosition = el.scrollLeft;
+        const page = Math.round(scrollPosition / (cardWidth + gap));
+        setCurrentPage(page);
+    }, []);
+
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        checkScroll();
+        el.addEventListener("scroll", checkScroll, { passive: true });
+        window.addEventListener("resize", checkScroll);
+        return () => {
+            el.removeEventListener("scroll", checkScroll);
+            window.removeEventListener("resize", checkScroll);
+        };
+    }, [checkScroll]);
+
+    const scroll = (direction: "left" | "right") => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const cardWidth = el.querySelector<HTMLElement>("[data-promo-card]")?.offsetWidth ?? 350;
+        const gap = 24;
+        // Scroll by 3 cards at a time (for desktop view)
+        const distance = (cardWidth + gap) * 3;
+        el.scrollBy({ left: direction === "left" ? -distance : distance, behavior: "smooth" });
+    };
+
+    const scrollToIndex = (index: number) => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const cardWidth = el.querySelector<HTMLElement>("[data-promo-card]")?.offsetWidth ?? 350;
+        const gap = 24;
+        el.scrollTo({ left: index * (cardWidth + gap), behavior: "smooth" });
+    };
+
     if (loading) {
         return (
             <section className="py-10 md:py-14 bg-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-10">
-                        <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900">
-                            Explore With Our Best Tour Collection
-                        </h2>
-                    </div>
+            <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900">
+                Discover Our Finest Tour Collection
+            </h2>
+            </div>
                     {/* Skeleton cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[1, 2, 3].map(i => (
@@ -131,21 +202,50 @@ export default function PromoSection() {
         );
     }
 
-    if (promoShips.length === 0) return null;
+    if (allShips.length === 0) return null;
+
+    const totalPages = Math.ceil(allShips.length / 3);
 
     return (
         <section className="py-10 md:py-14 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
                 <div className="text-center mb-10">
-                    <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900">
-                        Explore With Our Best Tour Collection
-                    </h2>
-                </div>
+            <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900">
+            Discover Our Finest Tour Collection
+            </h2>
+        </div>
 
-                {/* Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {promoShips.map((ship, index) => {
+                {/* Carousel Container */}
+                <div className="relative">
+                    {/* Navigation Arrows */}
+                    {canScrollLeft && (
+                        <button
+                            onClick={() => scroll("left")}
+                            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 hover:bg-gray-50"
+                            aria-label="Previous"
+                        >
+                            <ChevronLeftIcon className="w-6 h-6 text-gray-600" />
+                        </button>
+                    )}
+
+                    {canScrollRight && (
+                        <button
+                            onClick={() => scroll("right")}
+                            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 hover:bg-gray-50"
+                            aria-label="Next"
+                        >
+                            <ChevronRightIcon className="w-6 h-6 text-gray-600" />
+                        </button>
+                    )}
+
+                    {/* Scrollable Cards Container */}
+                    <div
+                        ref={scrollRef}
+                        className="flex gap-6 overflow-x-auto scroll-smooth pb-4"
+                        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                    >
+                        {allShips.map((ship, index) => {
                         const rating = getRating(ship.name);
                         const reviewCount = getReviewCount(ship.name);
                         const favCount = getFavCount(ship.name);
@@ -162,7 +262,8 @@ export default function PromoSection() {
                             <LocaleLink
                                 key={ship.id}
                                 href={`/cruises/${ship.slug}`}
-                                className="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                                data-promo-card
+                                className="group flex-shrink-0 w-[300px] md:w-[340px] lg:w-[360px] bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
                             >
                                 {/* Image */}
                                 <div className="relative h-52 overflow-hidden">
@@ -171,7 +272,7 @@ export default function PromoSection() {
                                         alt={ship.name}
                                         fill
                                         className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                        sizes="360px"
                                     />
 
                                     {/* Activity badge top-left */}
@@ -255,6 +356,25 @@ export default function PromoSection() {
                             </LocaleLink>
                         );
                     })}
+                    </div>
+
+                    {/* Dots Indicator */}
+                    {allShips.length > 3 && (
+                        <div className="flex justify-center mt-8 gap-2">
+                            {Array.from({ length: totalPages }).map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => scrollToIndex(index * 3)}
+                                    className={`transition-all duration-300 rounded-full ${
+                                        Math.floor(currentPage / 3) === index
+                                            ? "w-8 h-3 bg-blue-600"
+                                            : "w-3 h-3 bg-gray-300 hover:bg-gray-400"
+                                    }`}
+                                    aria-label={`Go to page ${index + 1}`}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </section>
