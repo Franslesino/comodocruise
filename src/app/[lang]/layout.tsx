@@ -5,21 +5,26 @@ import LocaleClientLayout from "./locale-client-layout";
  * Locale Layout for non-English languages
  * Handles /de, /fr, /id, etc.
  */
-export default function LocaleLayout({
+export default async function LocaleLayout({
     children,
     params,
 }: {
     children: React.ReactNode;
-    params: Promise<{ lang: NonDefaultLocale }>;
+    params: Promise<{ lang: string }>;
 }) {
+    const { lang } = await params;
+    
+    // Cast to NonDefaultLocale since we know from routing it's one of SUPPORTED_LOCALES
+    const typedParams = Promise.resolve({ lang: lang as NonDefaultLocale });
+
     return (
-        <LocaleClientLayout params={params}>
+        <LocaleClientLayout params={typedParams}>
             {children}
         </LocaleClientLayout>
     );
 }
 
-// Generate static params for all supported locales
-export function generateStaticParams() {
-    return SUPPORTED_LOCALES.map((lang) => ({ lang }));
+// Generate static params for all supported non-default locales
+export function generateStaticParams(): { lang: NonDefaultLocale }[] {
+    return SUPPORTED_LOCALES.map((lang) => ({ lang: lang as NonDefaultLocale }));
 }
