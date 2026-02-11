@@ -1,0 +1,551 @@
+@import "tailwindcss";
+
+/* ========================================
+   CUSTOM THEME: Override blue/sky palette
+   Base: #12214a (dark navy)
+======================================== */
+@theme {
+  --color-blue-50: #e8eaf2;
+  --color-blue-100: #c5c9de;
+  --color-blue-200: #9da4c4;
+  --color-blue-300: #757faa;
+  --color-blue-400: #576396;
+  --color-blue-500: #394882;
+  --color-blue-600: #12214a;
+  --color-blue-700: #0f1c3f;
+  --color-blue-800: #0b1533;
+  --color-blue-900: #070e24;
+  --color-blue-950: #040818;
+
+  --color-sky-50: #e8eaf2;
+  --color-sky-100: #c5c9de;
+  --color-sky-200: #9da4c4;
+  --color-sky-300: #757faa;
+  --color-sky-400: #576396;
+  --color-sky-500: #394882;
+  --color-sky-600: #12214a;
+  --color-sky-700: #0f1c3f;
+  --color-sky-800: #0b1533;
+  --color-sky-900: #070e24;
+  --color-sky-950: #040818;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ========================================
+   HIDE GOOGLE TRANSLATE INJECTED UI
+======================================== */
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame,
+.goog-te-balloon-frame,
+.goog-te-gadget,
+.skiptranslate,
+#goog-gt-tt,
+.goog-te-spinner-pos,
+.goog-te-menu-frame {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+body {
+  top: 0px !important;
+  position: static !important;
+}
+
+:root {
+  --background: #F1EDE5;
+  --foreground: #171717;
+  --accent: #12214a;
+  --accent-dark: #0f1c3f;
+  --accent-light: rgba(18, 33, 74, 0.12);
+
+  /* Mapped Variables */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: #12214a;
+  --color-accent-dark: #0f1c3f;
+  --color-accent-light: rgba(18, 33, 74, 0.12);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-canto: "Cormorant Garamond", serif;
+  --font-avenir: "Roboto Condensed", sans-serif;
+}
+
+/* ========================================
+   UTILITY CLASSES
+======================================== */
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ========================================
+   FONT CLASSES
+======================================== */
+
+@layer components {
+  .font-canto {
+    font-family: var(--font-canto-local, var(--font-canto));
+  }
+
+  .font-avenir {
+    font-family: var(--font-avenir-local, var(--font-avenir));
+  }
+
+  /* Embla Seamless Transitions */
+  .embla-slide {
+    will-change: transform, opacity, filter;
+    transition: transform 650ms ease, opacity 650ms ease, filter 650ms ease;
+    transform: scale(0.96);
+    filter: grayscale(1);
+    opacity: 0.55;
+    z-index: 0;
+  }
+
+  .embla-slide.is-active {
+    transform: scale(1);
+    filter: grayscale(0);
+    opacity: 1;
+    z-index: 10;
+  }
+}
+
+/* ========================================
+   SPOTLIGHT CAROUSEL STYLES
+======================================== */
+
+@layer components {
+  .spotlight-carousel__heading {
+    font-family: var(--font-canto-local, var(--font-canto));
+    font-weight: 400;
+    color: #1a1a1a;
+    line-height: 1.2;
+  }
+
+  .spotlight-carousel__subheading {
+    font-family: var(--font-avenir-local, var(--font-avenir));
+    font-weight: 500;
+  }
+}
+
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* ========================================
+   HERO SECTION STYLES
+======================================== */
+
+@layer components {
+  .hero {
+    position: relative;
+    width: 100%;
+    height: 100svh;
+    min-height: 100svh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Background Video/Image */
+  .hero__video,
+  .hero__image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+
+  /* Dark Overlay */
+  .hero__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right,
+        rgba(0, 0, 0, 0.5) 0%,
+        rgba(0, 0, 0, 0.3) 40%,
+        rgba(0, 0, 0, 0.15) 100%);
+    z-index: 2;
+  }
+
+  /* Top Bar */
+  .hero__topbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 40px;
+    z-index: 10;
+    padding-top: max(24px, env(safe-area-inset-top, 24px));
+  }
+
+  /* Hamburger Menu Button */
+  .hero__hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .hero__hamburger-line {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background-color: #ffffff;
+    transition: all 0.3s ease;
+  }
+}
+
+/* ========================================
+   BOOKING BAR STYLES
+======================================== */
+
+@layer components {
+  .booking-bar {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 1000px;
+    width: 90%;
+  }
+
+  /* Header version - more compact for navbar */
+  .booking-bar--header {
+    padding: 8px 16px;
+    gap: 12px;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+  }
+
+  .booking-bar__field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 16px;
+    border-right: 1px solid #e5e7eb;
+    cursor: pointer;
+  }
+
+  /* Header version fields - more compact */
+  .booking-bar--header .booking-bar__field {
+    padding: 6px 12px;
+    gap: 2px;
+  }
+
+  .booking-bar__field:last-of-type {
+    border-right: none;
+  }
+
+  .booking-bar__label {
+    font-family: var(--font-avenir);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+  }
+
+  /* Header version labels - smaller */
+  .booking-bar--header .booking-bar__label {
+    font-size: 10px;
+  }
+
+  .booking-bar__value {
+    font-family: var(--font-avenir);
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2937;
+  }
+
+  /* Header version values - smaller */
+  .booking-bar--header .booking-bar__value {
+    font-size: 12px;
+  }
+
+  .booking-bar__button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 28px;
+    font-family: var(--font-avenir);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    white-space: nowrap;
+  }
+
+  /* Header version button - more compact */
+  .booking-bar--header .booking-bar__button {
+    padding: 10px 20px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  .booking-bar__button:hover {
+    background: var(--accent-dark);
+  }
+}
+
+/* ========================================
+   PROMO SECTION STYLES
+======================================== */
+
+@layer components {
+  .promo-section {
+    padding: 48px 24px;
+    background: #f8fafc;
+  }
+
+  .promo-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .promo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .promo-card__image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+  }
+
+  .promo-card__badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: #ef4444;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    z-index: 5;
+  }
+
+  .promo-card__content {
+    padding: 20px;
+  }
+
+  .promo-card__operator {
+    font-family: var(--font-avenir);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .promo-card__title {
+    font-family: var(--font-canto);
+    font-size: 20px;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 12px;
+  }
+
+  .promo-card__prices {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .promo-card__original-price {
+    font-family: var(--font-avenir);
+    font-size: 14px;
+    color: #9ca3af;
+    text-decoration: line-through;
+  }
+
+  .promo-card__sale-price {
+    font-family: var(--font-avenir);
+    font-size: 20px;
+    font-weight: 700;
+    color: #ef4444;
+  }
+}
+
+/* ========================================
+   SHIPS GRID STYLES
+======================================== */
+
+@layer components {
+  .ships-section {
+    padding: 32px 24px;
+    background: white;
+  }
+
+  .ship-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .ship-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .ship-card__image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/10;
+    overflow: hidden;
+  }
+
+  .ship-card__content {
+    padding: 24px;
+  }
+
+  .ship-card__operator {
+    font-family: var(--font-avenir);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .ship-card__name {
+    font-family: var(--font-canto);
+    font-size: 24px;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 16px;
+  }
+
+  .ship-card__details {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 16px;
+  }
+
+  .ship-card__detail {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ship-card__detail-label {
+    font-family: var(--font-avenir);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #9ca3af;
+  }
+
+  .ship-card__detail-value {
+    font-family: var(--font-avenir);
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2937;
+  }
+
+  .ship-card__price {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .ship-card__price-label {
+    font-family: var(--font-avenir);
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .ship-card__price-value {
+    font-family: var(--font-avenir);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .ship-card__price-unit {
+    font-family: var(--font-avenir);
+    font-size: 12px;
+    color: #6b7280;
+  }
+}
+
+/* ========================================
+   RESPONSIVE STYLES
+======================================== */
+
+@media (max-width: 768px) {
+  .booking-bar {
+    flex-direction: column;
+    padding: 16px;
+    width: 95%;
+    gap: 12px;
+  }
+
+  .booking-bar__field {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 12px 0;
+  }
+
+  .booking-bar__field:last-of-type {
+    border-bottom: none;
+  }
+
+  .booking-bar__button {
+    width: 100%;
+    padding: 16px;
+  }
+
+  .booking-bar--hero {
+    bottom: 24px;
+  }
+}

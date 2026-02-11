@@ -1,0 +1,49 @@
+{
+    "hero": {
+        "tagline": "Temukan perairan murni dan petualangan laut yang tak terlupakan"
+    },
+    "nav": {
+        "home": "Beranda",
+        "destinations": "Destinasi",
+        "ships": "Kapal",
+        "offers": "Penawaran Spesial",
+        "activities": "Aktivitas",
+        "about": "Tentang",
+        "contact": "Kontak",
+        "checkBooking": "Cek Booking"
+    },
+    "promo": {
+        "title": "Penawaran Spesial",
+        "subtitle": "Penawaran eksklusif untuk pelayaran terpopuler kami. Waktu terbatas.",
+        "viewAll": "Lihat Semua Penawaran"
+    },
+    "ships": {
+        "title": "Armada Kami",
+        "subtitle": "Temukan pilihan kapal mewah kami yang dikurasi dengan cermat",
+        "cabins": "Kabin",
+        "maxPax": "Maks Tamu",
+        "from": "Mulai",
+        "night": "malam",
+        "viewAll": "Lihat Semua Kapal"
+    },
+    "booking": {
+        "destination": "Destinasi",
+        "whereTo": "Ke mana?",
+        "date": "Tanggal",
+        "selectDate": "Pilih tanggal",
+        "guests": "Tamu",
+        "search": "Cari"
+    },
+    "experience": {
+        "title": "Pengalaman",
+        "subtitle": "Aktivitas dan petualangan tak terlupakan selama perjalanan Anda",
+        "perPerson": "tamu",
+        "viewAll": "Lihat semua"
+    },
+    "footer": {
+        "brandName": "COMODOCRUISE",
+        "brandDescription": "Gerbang Anda menuju ekspedisi laut yang luar biasa. Jelajahi perairan murni, temui kehidupan laut yang menakjubkan, dan ciptakan kenangan yang abadi.",
+        "quickLinks": "Tautan Cepat",
+        "contactTitle": "Hubungi Kami"
+    }
+}

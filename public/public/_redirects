@@ -1,0 +1,6 @@
+/en/  /  301
+/en/*  /:splat  301
+/programs  /activities  301
+/programs/*  /activities/:splat  301
+/:lang/programs  /:lang/activities  301
+/:lang/programs/*  /:lang/activities/:splat  301

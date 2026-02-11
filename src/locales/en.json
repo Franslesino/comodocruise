@@ -1,0 +1,49 @@
+{
+    "hero": {
+        "tagline": "Discover pristine waters and unforgettable marine adventures"
+    },
+    "nav": {
+        "home": "Home",
+        "destinations": "Destinations", 
+        "ships": "Ships",
+        "offers": "Special Offers",
+        "activities": "Activities",
+        "about": "About",
+        "contact": "Contact",
+        "checkBooking": "Check Booking"
+    },
+    "promo": {
+        "title": "Special Offers",
+        "subtitle": "Exclusive deals on our most popular voyages. Limited time only.",
+        "viewAll": "View All Offers"
+    },
+    "ships": {
+        "title": "Our Fleet",
+        "subtitle": "Discover our carefully curated selection of luxury vessels",
+        "cabins": "Cabins",
+        "maxPax": "Max Guests",
+        "from": "From",
+        "night": "night",
+        "viewAll": "View All Ships"
+    },
+    "booking": {
+        "destination": "Destination",
+        "whereTo": "Where to?",
+        "date": "Date",
+        "selectDate": "Select date",
+        "guests": "Guests",
+        "search": "Search"
+    },
+    "experience": {
+        "title": "Experiences",
+        "subtitle": "Unforgettable activities and adventures during your voyage",
+        "perPerson": "person",
+        "viewAll": "View all"
+    },
+    "footer": {
+        "brandName": "COMODOCRUISE",
+        "brandDescription": "Your gateway to extraordinary sea expeditions. Explore pristine waters, encounter amazing marine life, and create memories that last a lifetime.",
+        "quickLinks": "Quick Links",
+        "contactTitle": "Contact Us"
+    }
+}

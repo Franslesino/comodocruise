@@ -1,0 +1,31 @@
+{
+  "name": "seasvoyage",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "set NODE_TLS_REJECT_UNAUTHORIZED=0&& next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "embla-carousel-react": "^8.6.0",
+    "framer-motion": "^12.24.6",
+    "next": "16.1.6",
+    "pg": "^8.17.2",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/pg": "^8.16.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

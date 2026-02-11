@@ -1,0 +1,56 @@
+"use client";
+
+/**
+ * HomePage - Main homepage component with all sections
+ */
+
+import Hero from "@/components/Hero";
+import Navbar from "@/components/Navbar";
+import PromoSection from "@/components/PromoSection";
+import DestinationSection from "@/components/DestinationSection";
+import ShipsSection from "@/components/ShipsSection";
+import ExperienceSection from "@/components/ExperienceSection";
+import FooterSection from "@/components/FooterSection";
+import BookingBarContainer from "@/components/BookingBarContainer";
+import { useHashScroll } from "@/hooks/useHashScroll";
+
+export default function HomePage() {
+    useHashScroll();
+    
+    return (
+        <>
+            <Navbar />
+            
+            {/* Booking Bar Container - handles hero/header transition */}
+            <BookingBarContainer />
+            
+            <main>
+                {/* Hero Section with Booking Bar */}
+                <Hero />
+
+                {/* Promo Section - Special Offers */}
+                <div id="promos" className="scroll-mt-24 md:scroll-mt-28">
+                    <PromoSection />
+                </div>
+
+                {/* Destinations Section - Explore Indonesian Destinations */}
+                <div id="destinations" className="scroll-mt-24 md:scroll-mt-28">
+                    <DestinationSection />
+                </div>
+
+                {/* Ships Section - Fleet Overview */}
+                <div id="ships" className="scroll-mt-24 md:scroll-mt-28">
+                    <ShipsSection />
+                </div>
+
+                {/* Experience Section */}
+                <div id="experiences" className="scroll-mt-24 md:scroll-mt-28">
+                    <ExperienceSection />
+                </div>
+
+                {/* Footer */}
+                <FooterSection />
+            </main>
+        </>
+    );
+}
