@@ -1,11 +1,26 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
 import SearchResults from "@/components/SearchResults";
+import { LOCALE_NAMES, NonDefaultLocale, SUPPORTED_LOCALES } from "@/lib/i18n";
 
-export const metadata: Metadata = {
-    title: "Search Results - COMODOCRUISE",
-    description: "Find your perfect sea voyage experience.",
-};
+interface PageProps {
+    params: Promise<{ lang: NonDefaultLocale }>;
+}
+
+export async function generateStaticParams() {
+    return SUPPORTED_LOCALES.map((locale) => ({
+        lang: locale,
+    }));
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+    const { lang } = await params;
+
+    return {
+        title: `Search Results - COMODOCRUISE (${LOCALE_NAMES[lang] || "EN"})`,
+        description: "Find your perfect sea voyage experience.",
+    };
+}
 
 export default function ResultsPage() {
     return (

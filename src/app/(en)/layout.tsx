@@ -1,8 +1,11 @@
 "use client";
 
 import { I18nProvider } from "@/components/I18nProvider";
+import Navbar from "@/components/Navbar";
+import FooterSection from "@/components/FooterSection";
 import { Locale } from "@/lib/i18n";
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 /**
  * English (default) Layout
@@ -16,6 +19,10 @@ export default function EnglishLayout({
     children: React.ReactNode;
 }) {
     const locale: Locale = "en";
+    const pathname = usePathname();
+    
+    // Check if we're on the homepage
+    const isHomePage = pathname === "/" || pathname === "/en";
 
     // Set lang attribute on html element
     useEffect(() => {
@@ -25,7 +32,19 @@ export default function EnglishLayout({
 
     return (
         <I18nProvider locale={locale}>
-            {children}
+            {isHomePage ? (
+                // Homepage has its own Navbar and Footer
+                children
+            ) : (
+                // Other pages get Navbar and Footer from layout
+                <>
+                    <Navbar />
+                    <div style={{ paddingTop: '80px' }}>
+                        {children}
+                    </div>
+                    <FooterSection />
+                </>
+            )}
         </I18nProvider>
     );
 }

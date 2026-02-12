@@ -1,8 +1,11 @@
 "use client";
 
 import { I18nProvider } from "@/components/I18nProvider";
+import Navbar from "@/components/Navbar";
+import FooterSection from "@/components/FooterSection";
 import { NonDefaultLocale } from "@/lib/i18n";
 import { use, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 interface LocaleClientLayoutProps {
     children: React.ReactNode;
@@ -15,6 +18,10 @@ interface LocaleClientLayoutProps {
 export default function LocaleClientLayout({ children, params }: LocaleClientLayoutProps) {
     const { lang } = use(params);
     const locale = lang || "en";
+    const pathname = usePathname();
+
+    // Check if we're on the homepage (e.g., /id, /de, /fr)
+    const isHomePage = pathname === `/${lang}`;
 
     // RTL languages
     const rtlLocales = ["ar"];
@@ -27,7 +34,19 @@ export default function LocaleClientLayout({ children, params }: LocaleClientLay
 
     return (
         <I18nProvider locale={locale}>
-            {children}
+            {isHomePage ? (
+                // Homepage has its own Navbar and Footer
+                children
+            ) : (
+                // Other pages get Navbar and Footer from layout
+                <>
+                    <Navbar />
+                    <div style={{ paddingTop: '80px' }}>
+                        {children}
+                    </div>
+                    <FooterSection />
+                </>
+            )}
         </I18nProvider>
     );
 }

@@ -55,7 +55,7 @@ body {
 }
 
 :root {
-  --background: #F1EDE5;
+  --background: #ffffff;
   --foreground: #171717;
   --accent: #12214a;
   --accent-dark: #0f1c3f;
@@ -157,7 +157,7 @@ body {
     width: 100%;
     height: 100svh;
     min-height: 100svh;
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     flex-direction: column;
   }
@@ -172,6 +172,7 @@ body {
     height: 100%;
     object-fit: cover;
     z-index: 1;
+    overflow: hidden;
   }
 
   /* Dark Overlay */

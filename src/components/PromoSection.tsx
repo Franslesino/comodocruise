@@ -260,7 +260,7 @@ export default function PromoSection() {
 
                         return (
                             <LocaleLink
-                                key={ship.id}
+                                key={`${ship.id}-${index}`}
                                 href={`/cruises/${ship.slug}`}
                                 data-promo-card
                                 className="group flex-shrink-0 w-[300px] md:w-[340px] lg:w-[360px] bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"

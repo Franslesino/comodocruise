@@ -159,9 +159,9 @@ export default function ShipsSection() {
                         className="flex gap-4 overflow-x-auto scroll-smooth scrollbar-hide pb-2"
                         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                     >
-                        {ships.map((ship) => (
+                        {ships.map((ship, index) => (
                             <LocaleLink
-                                key={ship.id}
+                                key={`${ship.id}-${index}`}
                                 href={`/ships/${ship.slug}`}
                                 data-ship-card
                                 className="group flex-shrink-0 w-[260px] sm:w-[270px]"

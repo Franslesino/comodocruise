@@ -276,8 +276,8 @@ export default function DestinationSection() {
                                         No operators available yet
                                     </div>
                                 )}
-                                {activeDest.operators.slice(0, 2).map((ship) => (
-                                    <div key={ship.id} className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors">
+                                {activeDest.operators.slice(0, 2).map((ship, index) => (
+                                    <div key={`${ship.id}-${index}`} className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors">
                                         <div className="flex gap-4">
                                             {/* Ship Image */}
                                             <div className="relative w-32 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-blue-100 to-teal-100">

@@ -4,10 +4,13 @@ import {
     ShipsApiResponse, 
     CabinsApiResponse, 
     AvailabilityApiResponse,
+    AvailabilityOperator,
     ParsedShip,
     Ship,
     CabinData,
     BoatCabinStats,
+    OperatorAvailabilityWithDates,
+    CabinAvailabilityWithDates,
 } from '@/types/api';
 
 // In dev mode, use the Next.js rewrite proxy to bypass CORS/SSL.
@@ -226,4 +229,264 @@ export async function getDestinations(): Promise<string[]> {
     }
 }
 
-export { convertGoogleDriveUrl, parseShipData };
+export { convertGoogleDriveUrl, parseShipData, normalizeBoatName };
+
+// ============================================
+// ADDITIONAL FUNCTIONS FOR RESULTS PAGE
+// ============================================
+
+// Fetch all raw ships as array
+export async function fetchAllShips(): Promise<Ship[]> {
+    const response = await fetch(`${API_BASE_URL}/ships`, {
+        headers: { 'Accept': 'application/json' },
+    });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data: ShipsApiResponse = await response.json();
+    if (!data.success) throw new Error('Ships API returned success: false');
+    return data.data;
+}
+
+// Fetch ALL cabins (all pages)
+export async function fetchAllCabins(): Promise<CabinData[]> {
+    const firstPage = await fetchRawCabins();
+    // fetchRawCabins already handles errors gracefully
+    return firstPage;
+}
+
+// Fetch paginated cabins
+export async function fetchCabinsPaginated(page = 1, limit = 100): Promise<CabinsApiResponse> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/cabins?page=${page}&limit=${limit}`, {
+            headers: { 'Accept': 'application/json' },
+        });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return await response.json();
+    } catch (err) {
+        console.warn('Failed to fetch cabins page:', err);
+        return {
+            success: true,
+            pagination: { page: 1, limit: 100, total: 0, totalPages: 1 },
+            source: 'error-fallback',
+            data: [],
+        };
+    }
+}
+
+// Fetch cabin details by ID
+export async function fetchCabinDetails(cabinId: string): Promise<CabinData | null> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/cabins/${cabinId}`, {
+            headers: { 'Accept': 'application/json' },
+        });
+        if (!response.ok) return null;
+        const result = await response.json();
+        if (result.success && result.data) return result.data as CabinData;
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+// Check if two boat names match (fuzzy matching)
+export function boatNamesMatch(name1: string, name2: string): boolean {
+    const n1 = normalizeBoatName(name1);
+    const n2 = normalizeBoatName(name2);
+    
+    // Exact match
+    if (n1 === n2) return true;
+    
+    // Substring match
+    if (n1.includes(n2) || n2.includes(n1)) return true;
+    
+    // Check first word match (for names like "AMORE", "BOMBANA")
+    const words1 = n1.replace(/[^A-Z0-9 ]/g, '').split(/\s+/);
+    const words2 = n2.replace(/[^A-Z0-9 ]/g, '').split(/\s+/);
+    if (words1[0] && words2[0] && words1[0] === words2[0] && words1[0].length > 3) return true;
+    
+    // Handle variations like "ALFATHRAN" vs "AL FATHRAN"
+    const compact1 = n1.replace(/\s+/g, '');
+    const compact2 = n2.replace(/\s+/g, '');
+    if (compact1 === compact2) return true;
+    if (compact1.includes(compact2) || compact2.includes(compact1)) return true;
+    
+    return false;
+}
+
+// Check if cabin names match (fuzzy matching)
+export function cabinNamesMatch(cabinName: string, availabilityCabinName: string): boolean {
+    const cn1 = cabinName.toUpperCase().trim();
+    const cn2 = availabilityCabinName.toUpperCase().trim();
+    if (cn1 === cn2) return true;
+    if (cn2.includes(cn1) || cn1.includes(cn2)) return true;
+    // Check significant words
+    const words1 = cn1.split(/\s+/).filter(w => w.length >= 4);
+    for (const word of words1) {
+        if (cn2.includes(word)) return true;
+    }
+    return false;
+}
+
+// Check availability for a specific date string
+export async function checkAvailabilityByDate(dateStr: string) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/availability?date=${dateStr}`, {
+            headers: { 'Accept': 'application/json' },
+        });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data: AvailabilityApiResponse = await response.json();
+        if (!data.success) throw new Error('Availability API returned success: false');
+        return data;
+    } catch (error) {
+        console.warn(`Failed to fetch availability for ${dateStr}:`, error);
+        return null;
+    }
+}
+
+// Generate all dates in a range
+export function generateAllDatesInRange(dateFrom: string, dateTo?: string): string[] {
+    if (!dateTo || dateTo === dateFrom) return [dateFrom];
+    const start = new Date(dateFrom);
+    const end = new Date(dateTo);
+    const dates: string[] = [];
+    const current = new Date(start);
+    while (current <= end) {
+        dates.push(toLocalDateStr(current));
+        current.setDate(current.getDate() + 1);
+    }
+    return dates;
+}
+
+// Helper to format date as YYYY-MM-DD using local time
+export function toLocalDateStr(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Aggregate availability data from multiple API responses with date tracking
+export function aggregateAvailabilityWithDates(
+    responses: AvailabilityApiResponse[]
+): Map<string, OperatorAvailabilityWithDates> {
+    const operatorMap = new Map<string, OperatorAvailabilityWithDates>();
+
+    responses.forEach(response => {
+        if (!response?.data?.operators) return;
+        const responseDate = response.data.date;
+
+        response.data.operators.forEach((op: AvailabilityOperator) => {
+            const key = op.operator.toUpperCase();
+
+            if (operatorMap.has(key)) {
+                const existing = operatorMap.get(key)!;
+                existing.total += op.total;
+                if (!existing.availableDates.includes(responseDate)) {
+                    existing.availableDates.push(responseDate);
+                }
+                if (op.cabins) {
+                    op.cabins.forEach(newCabin => {
+                        if (newCabin.available > 0) {
+                            const existingCabin = existing.cabins.find(c => c.name === newCabin.name);
+                            if (existingCabin) {
+                                existingCabin.available += newCabin.available;
+                                if (!existingCabin.availableDates.includes(responseDate)) {
+                                    existingCabin.availableDates.push(responseDate);
+                                }
+                            } else {
+                                existing.cabins.push({
+                                    name: newCabin.name,
+                                    available: newCabin.available,
+                                    availableDates: [responseDate],
+                                });
+                            }
+                        }
+                    });
+                }
+            } else {
+                const cabinsWithDates: CabinAvailabilityWithDates[] = (op.cabins || [])
+                    .filter(c => c.available > 0)
+                    .map(c => ({
+                        name: c.name,
+                        available: c.available,
+                        availableDates: [responseDate],
+                    }));
+
+                operatorMap.set(key, {
+                    operator: op.operator,
+                    total: op.total,
+                    cabins: cabinsWithDates,
+                    availableDates: [responseDate],
+                });
+            }
+        });
+    });
+
+    // Sort dates
+    operatorMap.forEach(op => {
+        op.availableDates.sort();
+        op.cabins.forEach(c => c.availableDates.sort());
+    });
+
+    return operatorMap;
+}
+
+// Fetch and aggregate availability for a date range
+export async function fetchAndAggregateAvailability(
+    dateFrom: string,
+    dateTo?: string
+): Promise<Map<string, OperatorAvailabilityWithDates>> {
+    try {
+        const allDates = generateAllDatesInRange(dateFrom, dateTo);
+        const batchSize = 10;
+        const allResponses: AvailabilityApiResponse[] = [];
+
+        for (let i = 0; i < allDates.length; i += batchSize) {
+            const batch = allDates.slice(i, i + batchSize);
+            const batchPromises = batch.map(date =>
+                checkAvailabilityByDate(date)
+            );
+            const batchResponses = await Promise.all(batchPromises);
+            batchResponses.forEach(r => {
+                if (r) allResponses.push(r);
+            });
+        }
+
+        if (allResponses.length > 0) {
+            return aggregateAvailabilityWithDates(allResponses);
+        }
+    } catch (err) {
+        console.warn('Could not fetch availability:', err);
+    }
+    return new Map<string, OperatorAvailabilityWithDates>();
+}
+
+// Format price to IDR
+export function formatPrice(price: number): string {
+    if (price === 0) return 'Contact for price';
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(price);
+}
+
+// Check if URL is a valid image URL
+export function isValidImageUrl(url: string): boolean {
+    if (!url) return false;
+    if (url.includes('/folders/') || url.includes('/drive/folders')) return false;
+    return true;
+}
+
+// Get direct image URL from Google Drive link
+export function getDirectImageUrl(driveUrl: string): string {
+    if (!driveUrl) return '/placeholder-boat.svg';
+    if (driveUrl.includes('/folders/')) return '/placeholder-cabin.jpg';
+    if (!driveUrl.includes('drive.google.com')) return driveUrl;
+    
+    const fileIdMatch = driveUrl.match(/(?:\/d\/|[?&]id=)([\w-]+)/);
+    if (fileIdMatch && fileIdMatch[1]) {
+        return `https://lh3.googleusercontent.com/d/${fileIdMatch[1]}=w1600`;
+    }
+    return convertGoogleDriveUrl(driveUrl);
+}

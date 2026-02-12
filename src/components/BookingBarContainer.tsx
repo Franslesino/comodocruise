@@ -9,6 +9,12 @@ export default function BookingBarContainer() {
     const [isVisible, setIsVisible] = useState(false);
     const [navbarContainer, setNavbarContainer] = useState<HTMLElement | null>(null);
 
+    // Shared dropdown states
+    const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
+    const [showCalendar, setShowCalendar] = useState(false);
+    const [showDurationDropdown, setShowDurationDropdown] = useState(false);
+    const [showGuestDropdown, setShowGuestDropdown] = useState(false);
+
     useEffect(() => {
         // Small delay to prevent flash
         const timer = setTimeout(() => {
@@ -40,6 +46,17 @@ export default function BookingBarContainer() {
 
     if (!isVisible) return null;
 
+    const dropdownProps = {
+        showDestinationDropdown,
+        setShowDestinationDropdown,
+        showCalendar,
+        setShowCalendar,
+        showDurationDropdown,
+        setShowDurationDropdown,
+        showGuestDropdown,
+        setShowGuestDropdown,
+    };
+
     return (
         <>
             {/* Hero Position BookingBar - shown when not scrolled */}
@@ -53,7 +70,7 @@ export default function BookingBarContainer() {
                     bottom: '48px', 
                     left: '50%', 
                     transform: `translateX(-50%) ${isHeaderMode ? 'translateY(16px)' : 'translateY(0px)'}`,
-                    zIndex: 20,
+                    zIndex: 100,
                     width: '100%',
                     maxWidth: '1000px',
                     padding: '0 24px',
@@ -61,7 +78,7 @@ export default function BookingBarContainer() {
                     justifyContent: 'center'
                 }}
             >
-                <BookingBar position="hero" />
+                <BookingBar position="hero" {...dropdownProps} />
             </div>
 
             {/* Header Position BookingBar - integrated into navbar */}
@@ -79,7 +96,7 @@ export default function BookingBarContainer() {
                         justifyContent: 'center'
                     }}
                 >
-                    <BookingBar position="header" />
+                    <BookingBar position="header" {...dropdownProps} />
                 </div>,
                 navbarContainer
             )}

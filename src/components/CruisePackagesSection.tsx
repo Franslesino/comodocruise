@@ -113,7 +113,7 @@ export default function CruisePackagesSection() {
 
                         return (
                             <LocaleLink
-                                key={ship.id}
+                                key={`${ship.id}-${index}`}
                                 href={`/cruises/${ship.slug}`}
                                 className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300"
                             >

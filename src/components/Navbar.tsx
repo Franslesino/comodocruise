@@ -93,8 +93,8 @@ export default function Navbar() {
     const positionClass = "fixed top-0 left-0 right-0";
 
     const bgClass = isSolid
-        ? "bg-white/95 backdrop-blur-sm shadow-sm border-b border-neutral-200"
-        : "bg-transparent border-transparent shadow-none backdrop-blur-none";
+        ? "bg-white/95 backdrop-blur-sm shadow-sm"
+        : "bg-transparent shadow-none backdrop-blur-none";
 
     const hamburgerColorClass = isSolid ? "bg-neutral-900" : "bg-white";
     const textColorClass = isSolid ? "text-neutral-900" : "text-white";
@@ -131,7 +131,9 @@ export default function Navbar() {
                                 alt="Logo" 
                                 width={40} 
                                 height={40}
-                                className="w-8 h-8 md:w-10 md:h-10 object-contain"
+                                className={`w-8 h-8 md:w-10 md:h-10 object-contain transition-all duration-300 ${
+                                    isTransparent ? 'brightness-0 invert' : ''
+                                }`}
                             />
                         </LocaleLink>
 

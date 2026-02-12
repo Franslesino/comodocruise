@@ -110,6 +110,62 @@ export interface ParsedShip {
     };
 }
 
+// Extended ship with details for results page
+export interface ShipWithDetails {
+    name: string;
+    description: string;
+    trip: string;
+    trip_name: string;
+    destinations: string;
+    image_main: string;
+    images: string[];
+    startFromPrice: number;
+    cabinCount: number;
+    availableCabins: number;
+    isAvailable: boolean;
+    cabins: CabinData[];
+    availableDates?: string[];
+}
+
+// Cabin with available dates tracking
+export interface CabinWithDates extends CabinData {
+    availableDates?: string[];
+}
+
+// Availability with date tracking for aggregation
+export interface CabinAvailabilityWithDates {
+    name: string;
+    available: number;
+    availableDates: string[];
+}
+
+export interface OperatorAvailabilityWithDates {
+    operator: string;
+    total: number;
+    cabins: CabinAvailabilityWithDates[];
+    availableDates: string[];
+}
+
+// Search criteria for results page
+export interface SearchCriteria {
+    destinations?: string[];
+    destinationName?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    guests?: number;
+    duration?: number;
+}
+
+// Itinerary item for sidebar
+export interface ItineraryItem {
+    cabin: string;
+    ship: string;
+    date: string;
+    price: number;
+    guests: number;
+    addedAt?: number;
+}
+
 // Booking related types
 export interface BookingSearchParams {
     destination?: string;

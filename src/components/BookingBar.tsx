@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -64,22 +64,37 @@ const toLocalDateStr = (date: Date): string => {
 
 interface BookingBarProps {
     position: "hero" | "header";
+    showDestinationDropdown: boolean;
+    setShowDestinationDropdown: (show: boolean) => void;
+    showCalendar: boolean;
+    setShowCalendar: (show: boolean) => void;
+    showDurationDropdown: boolean;
+    setShowDurationDropdown: (show: boolean) => void;
+    showGuestDropdown: boolean;
+    setShowGuestDropdown: (show: boolean) => void;
 }
 
-export default function BookingBar({ position }: BookingBarProps) {
+export default function BookingBar({ 
+    position,
+    showDestinationDropdown,
+    setShowDestinationDropdown,
+    showCalendar,
+    setShowCalendar,
+    showDurationDropdown,
+    setShowDurationDropdown,
+    showGuestDropdown,
+    setShowGuestDropdown,
+}: BookingBarProps) {
     const router = useRouter();
     const pathname = usePathname();
 
     // State
     const [destinations, setDestinations] = useState<Destination[]>([]);
     const [selectedDestinations, setSelectedDestinations] = useState<string[]>([]);
-    const [checkInDate, setCheckInDate] = useState<Date | null>(null);
+    const [dateFrom, setDateFrom] = useState<Date | null>(null);
+    const [dateTo, setDateTo] = useState<Date | null>(null);
+    const [duration, setDuration] = useState(3);
     const [passengers, setPassengers] = useState(2);
-
-    // Dropdown states
-    const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
-    const [showCalendar, setShowCalendar] = useState(false);
-    const [showGuestDropdown, setShowGuestDropdown] = useState(false);
 
     // Calendar state
     const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
@@ -88,6 +103,7 @@ export default function BookingBar({ position }: BookingBarProps) {
     // Refs for click outside
     const destinationRef = useRef<HTMLDivElement>(null);
     const calendarRef = useRef<HTMLDivElement>(null);
+    const durationRef = useRef<HTMLDivElement>(null);
     const guestRef = useRef<HTMLDivElement>(null);
 
     // Load destinations from API
@@ -121,6 +137,9 @@ export default function BookingBar({ position }: BookingBarProps) {
             if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
                 setShowCalendar(false);
             }
+            if (durationRef.current && !durationRef.current.contains(event.target as Node)) {
+                setShowDurationDropdown(false);
+            }
             if (guestRef.current && !guestRef.current.contains(event.target as Node)) {
                 setShowGuestDropdown(false);
             }
@@ -130,13 +149,41 @@ export default function BookingBar({ position }: BookingBarProps) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Handle date selection
+    // Handle date selection (range)
     const handleDateClick = (date: Date) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         if (date < today) return;
-        setCheckInDate(date);
-        setShowCalendar(false);
+
+        // Range selection logic
+        if (!dateFrom || (dateFrom && dateTo)) {
+            // Start new range
+            setDateFrom(date);
+            setDateTo(null);
+        } else if (date < dateFrom) {
+            // Swap if selected date is before start
+            setDateTo(dateFrom);
+            setDateFrom(date);
+        } else if (date.getTime() === dateFrom.getTime()) {
+            // Toggle off if clicking same date
+            setDateFrom(null);
+            setDateTo(null);
+        } else {
+            // Set end date
+            setDateTo(date);
+        }
+    };
+
+    // Check if date is in selected range
+    const isDateInRange = (date: Date): boolean => {
+        if (!dateFrom || !dateTo) return false;
+        return date > dateFrom && date < dateTo;
+    };
+
+    // Check if date is start or end of range
+    const isDateSelected = (date: Date): boolean => {
+        return !!((dateFrom && date.getTime() === dateFrom.getTime()) ||
+            (dateTo && date.getTime() === dateTo.getTime()));
     };
 
     // Toggle destination selection
@@ -156,9 +203,13 @@ export default function BookingBar({ position }: BookingBarProps) {
         if (selectedDestinations.length > 0) {
             params.set("destinations", selectedDestinations.join(","));
         }
-        if (checkInDate) {
-            params.set("date", toLocalDateStr(checkInDate));
+        if (dateFrom) {
+            params.set("dateFrom", toLocalDateStr(dateFrom));
         }
+        if (dateTo) {
+            params.set("dateTo", toLocalDateStr(dateTo));
+        }
+        params.set("duration", duration.toString());
         params.set("guests", passengers.toString());
 
         const searchUrl = localizePath(`/results?${params.toString()}`, locale);
@@ -189,7 +240,7 @@ export default function BookingBar({ position }: BookingBarProps) {
 
                 {/* Destination Dropdown */}
                 {showDestinationDropdown && (
-                    <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-100 z-50 p-4">
+                    <div className={`absolute ${position === 'hero' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 w-80 bg-white rounded-lg shadow-xl border border-gray-100 z-50 p-4`}>
                         <h4 className="font-avenir text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
                             Select Destinations
                         </h4>
@@ -223,12 +274,16 @@ export default function BookingBar({ position }: BookingBarProps) {
                     className="booking-bar__value"
                     onClick={() => setShowCalendar(!showCalendar)}
                 >
-                    {checkInDate ? formatDateDisplay(checkInDate) : "Select date"}
+                    {dateFrom ? (
+                        dateTo
+                            ? `${formatDateDisplay(dateFrom)} - ${formatDateDisplay(dateTo)}`
+                            : formatDateDisplay(dateFrom)
+                    ) : "Select date range"}
                 </span>
 
                 {/* Calendar Dropdown */}
                 {showCalendar && (
-                    <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-100 z-50 p-4">
+                    <div className={`absolute ${position === 'hero' ? 'bottom-full mb-2' : 'top-full mt-2'} left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-xl border border-gray-100 z-50 p-4 w-[640px]`}>
                         {/* Month Navigation */}
                         <div className="flex items-center justify-between mb-4">
                             <button 
@@ -246,9 +301,14 @@ export default function BookingBar({ position }: BookingBarProps) {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
-                            <span className="font-avenir font-semibold">
-                                {monthNames[calendarMonth]} {calendarYear}
-                            </span>
+                            <div className="flex gap-12">
+                                <span className="font-avenir font-semibold">
+                                    {monthNames[calendarMonth]} {calendarYear}
+                                </span>
+                                <span className="font-avenir font-semibold">
+                                    {monthNames[(calendarMonth + 1) % 12]} {calendarMonth === 11 ? calendarYear + 1 : calendarYear}
+                                </span>
+                            </div>
                             <button 
                                 onClick={() => {
                                     if (calendarMonth === 11) {
@@ -266,40 +326,134 @@ export default function BookingBar({ position }: BookingBarProps) {
                             </button>
                         </div>
 
-                        {/* Day Headers */}
-                        <div className="grid grid-cols-7 gap-1 mb-2">
-                            {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(day => (
-                                <div key={day} className="text-center text-xs font-medium text-gray-400 py-2">
-                                    {day}
+                        {/* Two Months Grid */}
+                        <div className="grid grid-cols-2 gap-6">
+                            {/* First Month */}
+                            <div>
+                                {/* Day Headers */}
+                                <div className="grid grid-cols-7 gap-1 mb-2">
+                                    {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(day => (
+                                        <div key={day} className="text-center text-xs font-medium text-gray-400 py-2">
+                                            {day}
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
+
+                                {/* Calendar Days - Current Month */}
+                                <div className="grid grid-cols-7 gap-1">
+                                    {calendarDays.map((date, idx) => {
+                                        if (!date) return <div key={`empty-${idx}`} />;
+                                        
+                                        const today = new Date();
+                                        today.setHours(0, 0, 0, 0);
+                                        const isPast = date < today;
+                                        const isSelected = isDateSelected(date);
+                                        const inRange = isDateInRange(date);
+
+                                        return (
+                                            <button
+                                                key={date.toISOString()}
+                                                onClick={() => handleDateClick(date)}
+                                                disabled={isPast}
+                                                className={`
+                                                    py-2 text-sm rounded-lg transition-colors
+                                                    ${isPast ? "text-gray-300 cursor-not-allowed" : "hover:bg-sky-50 cursor-pointer"}
+                                                    ${isSelected ? "bg-sky-500 text-white hover:bg-sky-600 z-10" : ""}
+                                                    ${inRange && !isSelected ? "bg-sky-100 text-sky-700" : ""}
+                                                `}
+                                            >
+                                                {date.getDate()}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Second Month */}
+                            <div>
+                                {/* Day Headers */}
+                                <div className="grid grid-cols-7 gap-1 mb-2">
+                                    {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(day => (
+                                        <div key={`next-${day}`} className="text-center text-xs font-medium text-gray-400 py-2">
+                                            {day}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Calendar Days - Next Month */}
+                                <div className="grid grid-cols-7 gap-1">
+                                    {generateCalendarDays(
+                                        calendarMonth === 11 ? calendarYear + 1 : calendarYear,
+                                        (calendarMonth + 1) % 12
+                                    ).map((date, idx) => {
+                                        if (!date) return <div key={`empty-next-${idx}`} />;
+                                        
+                                        const today = new Date();
+                                        today.setHours(0, 0, 0, 0);
+                                        const isPast = date < today;
+                                        const isSelected = isDateSelected(date);
+                                        const inRange = isDateInRange(date);
+
+                                        return (
+                                            <button
+                                                key={date.toISOString()}
+                                                onClick={() => handleDateClick(date)}
+                                                disabled={isPast}
+                                                className={`
+                                                    py-2 text-sm rounded-lg transition-colors
+                                                    ${isPast ? "text-gray-300 cursor-not-allowed" : "hover:bg-sky-50 cursor-pointer"}
+                                                    ${isSelected ? "bg-sky-500 text-white hover:bg-sky-600 z-10" : ""}
+                                                    ${inRange && !isSelected ? "bg-sky-100 text-sky-700" : ""}
+                                                `}
+                                            >
+                                                {date.getDate()}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                )}
+            </div>
 
-                        {/* Calendar Days */}
-                        <div className="grid grid-cols-7 gap-1">
-                            {calendarDays.map((date, idx) => {
-                                if (!date) return <div key={`empty-${idx}`} />;
-                                
-                                const today = new Date();
-                                today.setHours(0, 0, 0, 0);
-                                const isPast = date < today;
-                                const isSelected = checkInDate && date.toDateString() === checkInDate.toDateString();
+            {/* Duration Field */}
+            <div ref={durationRef} className="booking-bar__field relative">
+                <span className="booking-bar__label">Duration</span>
+                <span 
+                    className="booking-bar__value"
+                    onClick={() => setShowDurationDropdown(!showDurationDropdown)}
+                >
+                    {duration} {duration === 1 ? "Day" : "Days"}
+                </span>
 
-                                return (
-                                    <button
-                                        key={date.toISOString()}
-                                        onClick={() => handleDateClick(date)}
-                                        disabled={isPast}
-                                        className={`
-                                            py-2 text-sm rounded-lg transition-colors
-                                            ${isPast ? "text-gray-300 cursor-not-allowed" : "hover:bg-sky-50 cursor-pointer"}
-                                            ${isSelected ? "bg-sky-500 text-white hover:bg-sky-600" : ""}
-                                        `}
-                                    >
-                                        {date.getDate()}
-                                    </button>
-                                );
-                            })}
+                {/* Duration Dropdown */}
+                {showDurationDropdown && (
+                    <div className={`absolute ${position === 'hero' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50 p-4`}>
+                        <div className="flex items-center justify-between">
+                            <span className="font-avenir font-medium text-gray-900">Duration (Days)</span>
+                            <div className="flex items-center gap-4">
+                                <button 
+                                    onClick={() => setDuration(Math.max(1, duration - 1))}
+                                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                    </svg>
+                                </button>
+                                <span className="font-avenir font-semibold text-lg w-8 text-center">{duration}</span>
+                                <button 
+                                    onClick={() => setDuration(Math.min(30, duration + 1))}
+                                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div className="mt-3 text-xs text-gray-500">
+                            Maximum 30 days
                         </div>
                     </div>
                 )}
@@ -317,7 +471,7 @@ export default function BookingBar({ position }: BookingBarProps) {
 
                 {/* Guests Dropdown */}
                 {showGuestDropdown && (
-                    <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50 p-4">
+                    <div className={`absolute ${position === 'hero' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50 p-4`}>
                         <div className="flex items-center justify-between">
                             <span className="font-avenir font-medium text-gray-900">Guests</span>
                             <div className="flex items-center gap-4">
