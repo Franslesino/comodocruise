@@ -136,11 +136,13 @@ export default function PromoSection() {
         setCanScrollLeft(el.scrollLeft > 10);
         setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
         
-        // Calculate current page based on scroll position
+        // Calculate current page based on scroll position (3 cards per page)
         const cardWidth = el.querySelector<HTMLElement>("[data-promo-card]")?.offsetWidth ?? 350;
         const gap = 24;
         const scrollPosition = el.scrollLeft;
-        const page = Math.round(scrollPosition / (cardWidth + gap));
+        const cardsPerPage = 3;
+        const pageWidth = (cardWidth + gap) * cardsPerPage;
+        const page = Math.round(scrollPosition / pageWidth);
         setCurrentPage(page);
     }, []);
 
@@ -171,17 +173,20 @@ export default function PromoSection() {
         if (!el) return;
         const cardWidth = el.querySelector<HTMLElement>("[data-promo-card]")?.offsetWidth ?? 350;
         const gap = 24;
-        el.scrollTo({ left: index * (cardWidth + gap), behavior: "smooth" });
+        const cardsPerPage = 3;
+        el.scrollTo({ left: index * cardsPerPage * (cardWidth + gap), behavior: "smooth" });
     };
 
     if (loading) {
         return (
             <section className="py-10 md:py-14 bg-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-10">
-            <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900">
+                    <div className="text-center mb-6">
+            <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900 mb-4">
                 Discover Our Finest Tour Collection
             </h2>
+                        {/* Placeholder for indicators */}
+                        <div className="h-2.5" />
             </div>
                     {/* Skeleton cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -210,14 +215,32 @@ export default function PromoSection() {
         <section className="py-10 md:py-14 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
-                <div className="text-center mb-10">
-            <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900">
+                <div className="text-center mb-6">
+            <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900 mb-4">
             Discover Our Finest Tour Collection
             </h2>
+                    
+                    {/* Slide Indicators */}
+                    {allShips.length > 3 && (
+                        <div className="flex justify-center gap-2">
+                            {Array.from({ length: totalPages }).map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => scrollToIndex(index)}
+                                    className={`transition-all duration-300 rounded-full ${
+                                        currentPage === index
+                                            ? "w-10 h-2.5 bg-[#12214a]"
+                                            : "w-2.5 h-2.5 bg-gray-300 hover:bg-gray-400"
+                                    }`}
+                                    aria-label={`Go to page ${index + 1}`}
+                                />
+                            ))}
+                        </div>
+                    )}
         </div>
 
                 {/* Carousel Container */}
-                <div className="relative">
+                <div className="relative mt-8">
                     {/* Navigation Arrows */}
                     {canScrollLeft && (
                         <button
@@ -357,24 +380,6 @@ export default function PromoSection() {
                         );
                     })}
                     </div>
-
-                    {/* Dots Indicator */}
-                    {allShips.length > 3 && (
-                        <div className="flex justify-center mt-8 gap-2">
-                            {Array.from({ length: totalPages }).map((_, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => scrollToIndex(index * 3)}
-                                    className={`transition-all duration-300 rounded-full ${
-                                        Math.floor(currentPage / 3) === index
-                                            ? "w-8 h-3 bg-blue-600"
-                                            : "w-3 h-3 bg-gray-300 hover:bg-gray-400"
-                                    }`}
-                                    aria-label={`Go to page ${index + 1}`}
-                                />
-                            ))}
-                        </div>
-                    )}
                 </div>
             </div>
         </section>

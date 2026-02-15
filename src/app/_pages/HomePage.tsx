@@ -9,8 +9,8 @@ import Navbar from "@/components/Navbar";
 import PromoSection from "@/components/PromoSection";
 import CruisePackagesSection from "@/components/CruisePackagesSection";
 import DestinationSection from "@/components/DestinationSection";
-import ShipsSection from "@/components/ShipsSection";
 import ExperienceSection from "@/components/ExperienceSection";
+import TravelGuideSection from "@/components/TravelGuideSection";
 import FooterSection from "@/components/FooterSection";
 import BookingBarContainer from "@/components/BookingBarContainer";
 import { useHashScroll } from "@/hooks/useHashScroll";
@@ -44,14 +44,14 @@ export default function HomePage() {
                     <DestinationSection />
                 </div>
 
-                {/* Ships Section - Fleet Overview */}
-                <div id="ships" className="scroll-mt-24 md:scroll-mt-28">
-                    <ShipsSection />
-                </div>
-
                 {/* Experience Section */}
                 <div id="experiences" className="scroll-mt-24 md:scroll-mt-28">
                     <ExperienceSection />
+                </div>
+
+                {/* Travel Guide & Updates */}
+                <div id="travel-guide" className="scroll-mt-24 md:scroll-mt-28">
+                    <TravelGuideSection />
                 </div>
 
                 {/* Footer */}

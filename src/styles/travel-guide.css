@@ -1,0 +1,151 @@
+/* ============================================
+   TRAVEL GUIDE & UPDATES SECTION
+   ============================================ */
+
+.travel-guide-section {
+    padding: 4rem 0 5rem;
+    background: #ffffff;
+}
+
+.travel-guide-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.travel-guide-heading {
+    font-family: var(--font-canto, Georgia, serif);
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    text-align: center;
+    margin: 0 0 2.5rem;
+}
+
+/* Grid: 4 equal columns */
+.travel-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+}
+
+/* Card */
+.travel-guide-card {
+    display: block;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: white;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.travel-guide-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+/* Card Image */
+.travel-guide-card-image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+}
+
+/* Gradient overlay */
+.travel-guide-card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.7) 0%,
+        rgba(0, 0, 0, 0.25) 50%,
+        rgba(0, 0, 0, 0.05) 100%
+    );
+    z-index: 2;
+    transition: background 0.3s ease;
+}
+
+.travel-guide-card:hover .travel-guide-card-overlay {
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.8) 0%,
+        rgba(0, 0, 0, 0.35) 50%,
+        rgba(0, 0, 0, 0.1) 100%
+    );
+}
+
+/* Text content positioned at bottom */
+.travel-guide-card-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.25rem;
+    z-index: 3;
+}
+
+/* Category badge */
+.travel-guide-card-category {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    margin-bottom: 0.6rem;
+}
+
+/* Title */
+.travel-guide-card-title {
+    font-family: var(--font-canto, Georgia, serif);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.35;
+    margin: 0;
+    color: #ffffff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+    .travel-guide-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .travel-guide-section {
+        padding: 3rem 0 4rem;
+    }
+
+    .travel-guide-heading {
+        font-size: 1.6rem;
+        margin-bottom: 2rem;
+    }
+
+    .travel-guide-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .travel-guide-card-image {
+        aspect-ratio: 16 / 9;
+    }
+
+    .travel-guide-card-title {
+        font-size: 1.05rem;
+    }
+}

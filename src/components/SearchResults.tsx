@@ -27,6 +27,7 @@ import {
     ItineraryItem,
 } from "@/types/api";
 import "@/styles/results.css";
+import "@/styles/cruises.css";
 
 // Sort options
 const SORT_OPTIONS = [
@@ -100,7 +101,11 @@ const filterDatesToWeeklyDepartures = (dates: string[]): string[] => {
     return result;
 };
 
-export default function SearchResults() {
+interface SearchResultsProps {
+    showHero?: boolean;
+}
+
+export default function SearchResults({ showHero = false }: SearchResultsProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -232,6 +237,19 @@ export default function SearchResults() {
                     availableOperators.forEach((op, name) => {
                         console.log(`  - ${name}: ${op.total} cabins available on ${op.availableDates?.length || 0} dates`);
                     });
+                } else {
+                    // No date selected: fetch availability for next 90 days (weekly sampling) so "More Dates" has data
+                    const today = new Date();
+                    const defaultFrom = toLocalDateStr(today);
+                    const endDate = new Date(today);
+                    endDate.setDate(endDate.getDate() + 90);
+                    const defaultTo = toLocalDateStr(endDate);
+                    try {
+                        availableOperators = await fetchAndAggregateAvailability(defaultFrom, defaultTo);
+                        console.log(`[SearchResults] Browse mode: fetched availability for ${defaultFrom} to ${defaultTo}, found ${availableOperators.size} operators`);
+                    } catch (err) {
+                        console.warn("[SearchResults] Failed to fetch browse-mode availability:", err);
+                    }
                 }
 
                 // Map cabins to ships and check availability
@@ -278,6 +296,17 @@ export default function SearchResults() {
                         } else {
                             availableCabins = shipCabins.length;
                         }
+                    } else if (!criteria.dateFrom && operatorData && operatorData.cabins) {
+                        // Browse mode: enrich cabins with available dates without filtering them out
+                        shipCabins = shipCabins.map(cabin => {
+                            const matchingCabin = operatorData!.cabins.find(ac =>
+                                cabinNamesMatch(cabin.cabin_name, ac.name)
+                            );
+                            return {
+                                ...cabin,
+                                availableDates: matchingCabin?.availableDates || shipAvailableDates,
+                            };
+                        });
                     }
 
                     const validPrices = shipCabins.map(c => c.price).filter(p => p > 0);
@@ -750,8 +779,37 @@ export default function SearchResults() {
     };
 
     return (
-        <div className="results-wrap">
-            <div className="results-container">
+        <div className={showHero ? "cruises-page" : "results-wrap"}>
+            {/* Hero Section (only on cruises page) */}
+            {showHero && (
+                <div className="cruises-hero">
+                    <video
+                        className="cruises-hero__video"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        preload="auto"
+                    >
+                        <source src="/vidfootage.mp4" type="video/mp4" />
+                        Your browser does not support the video tag.
+                    </video>
+                    <div className="cruises-hero__overlay" />
+                    <div className="cruises-hero-content">
+                        <h1>Discover Our Cruise Packages</h1>
+                        <p className="cruises-hero-subtitle">
+                            Experience the adventure of a lifetime with our handpicked cruise packages to pristine destinations
+                        </p>
+                        <div className="cruises-hero-badge">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            Save up to 30% on Selected Packages
+                        </div>
+                    </div>
+                </div>
+            )}
+            <div className={showHero ? "results-container results-container--hero" : "results-container"}>
                 {loading ? (
                     <div className="results-layout">
                         <div className="results-main">
@@ -774,28 +832,32 @@ export default function SearchResults() {
                     <div className="results-layout-horizontal">
                         {/* Main Content - Full Width */}
                         <div className="results-main-full">
-                            {/* Back Button */}
-                            <div className="mb-4">
-                                <LocaleLink
-                                    href="/"
-                                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-[#12214a] transition-colors"
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                                    </svg>
-                                    Back to Homepage
-                                </LocaleLink>
-                            </div>
+                            {/* Back Button - only on results page */}
+                            {!showHero && (
+                                <div className="mb-4">
+                                    <LocaleLink
+                                        href="/"
+                                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-[#12214a] transition-colors"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                        </svg>
+                                        Back to Homepage
+                                    </LocaleLink>
+                                </div>
+                            )}
 
                             <h2 className="results-title" style={{ fontFamily: "var(--font-canto, Georgia, serif)", color: "#1a1a1a", fontSize: "2rem", marginBottom: "0.5rem" }}>
-                                Select a Ship
+                                {showHero ? "Cruise Packages" : "Select a Ship"}
                             </h2>
 
                             <div className="results-intro">
                                 {sortedShips.length > 0 ? (
                                     <>
                                         <p style={{ color: "#666", fontSize: "1rem", marginTop: 0 }}>
-                                            Found <strong style={{ color: "#12214a" }}>{sortedShips.length} ships</strong>. Please choose one to view available cabins.
+                                            {showHero
+                                                ? <>Browse through our collection of <strong style={{ color: "#12214a" }}>{sortedShips.length} exclusive cruise packages</strong></>
+                                                : <>Found <strong style={{ color: "#12214a" }}>{sortedShips.length} ships</strong>. Please choose one to view available cabins.</>}
                                         </p>
                                         {searchCriteria.dateFrom && searchCriteria.dateTo && (
                                             <p style={{ color: "#666", fontSize: "0.9rem", marginTop: "0.5rem", fontStyle: "italic" }}>
@@ -1467,7 +1529,8 @@ export default function SearchResults() {
                                                                     if (cabinDates.length === 0) {
                                                                         return <div style={{ padding: "16px", color: "#666", textAlign: "center" }}>No available dates found</div>;
                                                                     }
-                                                                    return cabinDates.slice(0, 5).map((date, dateIdx) => {
+                                                                    const maxDatesToShow = searchCriteria.dateFrom ? 5 : 10;
+                                                                    return cabinDates.slice(0, maxDatesToShow).map((date, dateIdx) => {
                                                                         const startDate = new Date(date);
                                                                         const endDate = new Date(date);
                                                                         endDate.setDate(endDate.getDate() + tripNights);

@@ -16,6 +16,11 @@
     flex: 1;
 }
 
+.results-container--hero {
+    padding-top: 1rem;
+    padding-bottom: 3rem;
+}
+
 /* Layout */
 .results-layout {
     display: flex;
@@ -28,6 +33,26 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+}
+
+.horizontal-filter-bar {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+}
+
+.filter-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .results-main-full {
@@ -249,6 +274,8 @@
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
+    min-width: 120px;
+    justify-content: center;
 }
 
 .filter-btn:hover {

@@ -1,0 +1,1484 @@
+/* ============================================
+   CRUISES PAGE — Halong Bay Tours Style
+   ============================================ */
+
+.cruises-page {
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Hero Section */
+.cruises-hero {
+    position: relative;
+    width: 100%;
+    height: 100svh;
+    min-height: 100svh;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.cruises-hero__video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+
+.cruises-hero__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right,
+        rgba(0, 0, 0, 0.5) 0%,
+        rgba(0, 0, 0, 0.3) 40%,
+        rgba(0, 0, 0, 0.15) 100%);
+    z-index: 2;
+}
+
+.cruises-hero-content {
+    position: absolute;
+    z-index: 10;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    max-width: 900px;
+    padding: 3rem 2rem;
+    color: white;
+}
+
+.cruises-hero h1 {
+    font-family: var(--font-canto);
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    line-height: 1.2;
+}
+
+.cruises-hero-subtitle {
+    font-size: 1.3rem;
+    margin: 0 0 2rem;
+    opacity: 0.95;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    max-width: 600px;
+}
+
+.cruises-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: white;
+}
+
+.cruises-hero-badge svg {
+    width: 20px;
+    height: 20px;
+}
+
+.cruises-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
+}
+
+/* ============================================
+   HORIZONTAL FILTER BAR
+   ============================================ */
+.horizontal-filters-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    margin-bottom: 1.5rem;
+    gap: 1.5rem;
+}
+
+.filters-left {
+    display: flex;
+    align-items: center;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 0.75rem;
+    width: 20px;
+    height: 20px;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.search-input {
+    width: 250px;
+    padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: #374151;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    border-color: #12214a;
+    box-shadow: 0 0 0 3px rgba(18, 33, 74, 0.1);
+}
+
+.search-input::placeholder {
+    color: #9ca3af;
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 0.5rem;
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.25rem;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.search-clear-btn:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.filters-center {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    justify-content: center;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.filter-btn:hover {
+    background: #f9fafb;
+    border-color: #12214a;
+}
+
+.filter-btn.active {
+    background: #12214a;
+    color: white;
+    border-color: #12214a;
+}
+
+.filter-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.filter-label {
+    font-weight: 500;
+}
+
+.filter-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 0.35rem;
+    background: #12214a;
+    color: white;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.25rem;
+}
+
+.filter-dropdown-wrapper {
+    position: relative;
+}
+
+.filter-dropdown-panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    min-width: 280px;
+    max-width: 350px;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.filter-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.filter-checkbox:hover {
+    background: #f9fafb;
+}
+
+.filter-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #12214a;
+}
+
+.filter-checkbox span {
+    font-size: 0.9rem;
+    color: #374151;
+}
+
+.filter-counter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.filter-counter span:first-child {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.counter-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.counter-controls button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.counter-controls button:hover:not(:disabled) {
+    background: #12214a;
+    color: white;
+    border-color: #12214a;
+}
+
+.counter-controls button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.counter-controls span {
+    min-width: 2rem;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.filter-actions button {
+    flex: 1;
+    padding: 0.65rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-apply-filter {
+    background: #12214a;
+    color: white;
+    border: none;
+}
+
+.btn-apply-filter:hover {
+    background: #0f1c3f;
+}
+
+.btn-clear-filter {
+    background: white;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+}
+
+.btn-clear-filter:hover {
+    background: #f9fafb;
+}
+
+.price-range-inputs-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem;
+}
+
+.price-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.price-input-wrapper-filter {
+    flex: 1;
+    position: relative;
+}
+
+.price-input-wrapper-filter input {
+    width: 100%;
+    padding: 0.5rem 0.5rem 0.5rem 1.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.price-input-wrapper-filter .price-currency {
+    position: absolute;
+    left: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.price-separator-filter {
+    color: #9ca3af;
+    font-weight: 600;
+}
+
+.price-hint-filter {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    text-align: center;
+}
+
+/* Page Header */
+.cruises-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-top: 1.5rem;
+}
+
+.cruises-header h1 {
+    font-family: var(--font-canto);
+    color: #12214a;
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+}
+
+.cruises-header .cruises-subtitle {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Count + Sort/Filter Row */
+.cruises-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.cruises-count {
+    font-size: 1.05rem;
+    color: #12214a;
+    font-weight: 600;
+}
+
+.cruises-count span {
+    color: #6b7280;
+    font-weight: 400;
+}
+
+.cruises-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.cruises-sort-btn,
+.cruises-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-weight: 500;
+}
+
+.cruises-sort-btn:hover,
+.cruises-filter-btn:hover {
+    border-color: #12214a;
+    color: #12214a;
+}
+
+.cruises-filter-btn .filter-count {
+    background: #12214a;
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+/* Duration Pills */
+.cruises-duration-pills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.cruises-duration-pills .pill-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #4b5563;
+    margin-right: 4px;
+}
+
+.duration-pill {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.duration-pill:hover {
+    border-color: #12214a;
+    color: #12214a;
+}
+
+.duration-pill.active {
+    background: #12214a;
+    color: #ffffff;
+    border-color: #12214a;
+}
+
+/* Search Bar */
+.cruises-search-wrap {
+    position: relative;
+    margin-bottom: 1.25rem;
+}
+
+.cruises-search-wrap .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.cruises-search-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px 16px 10px 42px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: #1f2937;
+    background: #ffffff;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.cruises-search-input:focus {
+    border-color: #12214a;
+}
+
+/* ============================================
+   PACKAGE CARD (Halong Bay Style)
+   ============================================ */
+.pkg-card {
+    display: flex;
+    background: #ffffff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
+    margin-bottom: 1.25rem;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+}
+
+.pkg-card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Image Section */
+.pkg-card-image {
+    position: relative;
+    width: 340px;
+    min-width: 340px;
+    min-height: 260px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.pkg-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pkg-card-image .carousel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.85);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 2;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.pkg-card:hover .pkg-card-image .carousel-nav {
+    opacity: 1;
+}
+
+.pkg-card-image .carousel-prev {
+    left: 8px;
+}
+
+.pkg-card-image .carousel-next {
+    right: 8px;
+}
+
+.pkg-card-image .carousel-nav:hover {
+    background: #ffffff;
+}
+
+.pkg-card-image .img-counter {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #ffffff;
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    z-index: 2;
+}
+
+/* Content Section */
+.pkg-card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.pkg-card-content {
+    padding: 1.25rem 1.5rem 0.75rem;
+    flex: 1;
+}
+
+.pkg-card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #12214a;
+    margin: 0 0 0.6rem;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.pkg-card-title:hover {
+    color: #1a3a7a;
+}
+
+/* Tag badges */
+.pkg-tags {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.pkg-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    background: #eef2ff;
+    color: #12214a;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.pkg-tag svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+/* Bullet highlights */
+.pkg-highlights {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.5rem;
+}
+
+.pkg-highlights li {
+    position: relative;
+    padding-left: 16px;
+    font-size: 0.85rem;
+    color: #4b5563;
+    line-height: 1.65;
+    margin-bottom: 2px;
+}
+
+.pkg-highlights li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #12214a;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+/* Footer (Duration + Price + Reviews) */
+.pkg-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #f0f0f0;
+    padding: 0.85rem 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.pkg-duration-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #374151;
+    font-weight: 600;
+    background: #f3f4f6;
+    padding: 6px 14px;
+    border-radius: 8px;
+}
+
+.pkg-duration-badge svg {
+    width: 15px;
+    height: 15px;
+    color: #12214a;
+}
+
+/* Price Area */
+.pkg-price-area {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.pkg-price-from {
+    font-size: 0.78rem;
+    color: #6b7280;
+    font-weight: 400;
+}
+
+.pkg-price-value {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #12214a;
+    letter-spacing: -0.5px;
+}
+
+.pkg-price-pp {
+    font-size: 0.72rem;
+    color: #6b7280;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.pkg-price-note {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* Reviews Count */
+.pkg-reviews {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #6b7280;
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.pkg-reviews svg {
+    width: 16px;
+    height: 16px;
+    color: #f59e0b;
+}
+
+/* View Details button */
+.pkg-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    background: #12214a;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+}
+
+.pkg-view-btn:hover {
+    background: #0f1c3f;
+}
+
+.pkg-view-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ============================================
+   LOADING SKELETON
+   ============================================ */
+.pkg-skeleton {
+    display: flex;
+    background: #ffffff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    margin-bottom: 1.25rem;
+    height: 260px;
+}
+
+.pkg-skeleton .skel-image {
+    width: 340px;
+    min-width: 340px;
+    background: #e5e7eb;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.pkg-skeleton .skel-body {
+    flex: 1;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.skel-line {
+    height: 14px;
+    background: #e5e7eb;
+    border-radius: 6px;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skel-line.w-60 { width: 60%; }
+.skel-line.w-80 { width: 80%; }
+.skel-line.w-40 { width: 40%; }
+.skel-line.w-50 { width: 50%; }
+.skel-line.h-20 { height: 20px; }
+.skel-line.h-16 { height: 16px; }
+
+@keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ============================================
+   NO RESULTS
+   ============================================ */
+.cruises-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.cruises-empty svg {
+    width: 56px;
+    height: 56px;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+}
+
+.cruises-empty h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 0.5rem;
+}
+
+.cruises-empty p {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0 0 1rem;
+}
+
+.cruises-clear-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px solid #12214a;
+    color: #12214a;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.cruises-clear-btn:hover {
+    background: #12214a;
+    color: #ffffff;
+}
+
+/* ============================================
+   SIDEBAR LAYOUT
+   ============================================ */
+.cruises-layout {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.cruises-sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.cruises-main-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #12214a;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.75rem;
+}
+
+.sidebar-clear-btn {
+    background: none;
+    border: none;
+    color: #ef4444;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.sidebar-clear-btn:hover {
+    background: #fee2e2;
+}
+
+.filter-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.filter-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.75rem;
+}
+
+.filter-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.filter-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.filter-checkbox-item:hover {
+    background: #f9fafb;
+}
+
+.filter-checkbox-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #12214a;
+}
+
+.filter-checkbox-item label {
+    flex: 1;
+    font-size: 0.85rem;
+    color: #374151;
+    cursor: pointer;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #374151;
+    background: white;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.filter-select:hover,
+.filter-select:focus {
+    border-color: #12214a;
+    outline: none;
+}
+
+.guest-input-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 0.5rem;
+}
+
+.guest-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.guest-btn:hover:not(:disabled) {
+    background: #f9fafb;
+    border-color: #12214a;
+}
+
+.guest-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.guest-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #12214a;
+    min-width: 40px;
+    text-align: center;
+}
+
+.price-range-inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.price-input-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.price-currency {
+    position: absolute;
+    left: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.filter-input.price-input {
+    width: 100%;
+    padding: 0.6rem 0.6rem 0.6rem 1.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #374151;
+}
+
+.filter-input.price-input:focus {
+    border-color: #12214a;
+    outline: none;
+}
+
+.price-separator {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.price-hint {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: 0.5rem;
+}
+
+/* ============================================
+   CALENDAR STYLES
+   ============================================ */
+.date-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.date-display:hover {
+    border-color: #12214a;
+}
+
+.date-display-value {
+    font-size: 0.85rem;
+    color: #374151;
+    flex: 1;
+}
+
+.calendar-icon {
+    color: #6b7280;
+    flex-shrink: 0;
+}
+
+.calendar-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    border: 1px solid #e5e7eb;
+    z-index: 1000;
+    padding: 1rem;
+    min-width: 600px;
+}
+
+.calendar-dropdown-panel {
+    width: 640px;
+    max-width: 90vw;
+}
+
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.calendar-nav-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #374151;
+    transition: all 0.15s ease;
+}
+
+.calendar-nav-btn:hover {
+    background: #f3f4f6;
+}
+
+.calendar-months {
+    display: flex;
+    gap: 3rem;
+    flex: 1;
+    justify-content: center;
+}
+
+.calendar-month-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.calendar-grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.calendar-month-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.calendar-day-headers {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.calendar-day-header {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #9ca3af;
+    padding: 0.5rem 0;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+}
+
+.calendar-day {
+    padding: 0.5rem;
+    min-height: 36px;
+    border: none;
+    background: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-day:hover:not(:disabled):not(.selected) {
+    background: #f0f9ff;
+}
+
+.calendar-day:disabled,
+.calendar-day.past {
+    color: #d1d5db;
+    cursor: not-allowed;
+}
+
+.calendar-day.selected {
+    background: #0ea5e9;
+    color: white;
+    font-weight: 600;
+    z-index: 10;
+}
+
+.calendar-day.selected:hover {
+    background: #0284c7;
+}
+
+.calendar-day.in-range {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.calendar-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.calendar-clear-btn,
+.calendar-apply-btn {
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.calendar-clear-btn {
+    background: white;
+    border: 1px solid #d1d5db;
+    color: #374151;
+}
+
+.calendar-clear-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.calendar-apply-btn {
+    background: #12214a;
+    border: 1px solid #12214a;
+    color: white;
+}
+
+.calendar-apply-btn:hover {
+    background: #0f1a3a;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 800px) {
+    .cruises-hero h1 {
+        font-size: 2.5rem;
+    }
+
+    .cruises-hero-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .horizontal-filters-bar {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .filters-left,
+    .filters-center {
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .search-input {
+        width: 100%;
+    }
+
+    .filter-label {
+        display: inline;
+    }
+
+    .pkg-card {
+        flex-direction: column;
+    }
+
+    .pkg-card-image {
+        width: 100%;
+        min-width: 100%;
+        min-height: 200px;
+        max-height: 220px;
+    }
+
+    .pkg-card-image .carousel-nav {
+        opacity: 1;
+    }
+
+    .pkg-card-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .cruises-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .cruises-layout {
+        flex-direction: column;
+    }
+
+    .cruises-sidebar {
+        width: 100%;
+        min-width: 100%;
+        position: static;
+        margin-bottom: 1.5rem;
+    }
+
+    .calendar-dropdown,
+    .calendar-dropdown-panel {
+        min-width: 100%;
+        width: 100% !important;
+        max-width: 100vw;
+        left: 0;
+        right: 0;
+    }
+
+    .calendar-grid-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .calendar-months {
+        flex-direction: column;
+        gap: 0.25rem;
+        align-items: center;
+    }
+    
+    .calendar-month-name {
+        font-size: 0.85rem;
+    }
+    
+    .calendar-day {
+        min-height: 32px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .cruises-hero h1 {
+        font-size: 2rem;
+    }
+
+    .cruises-hero-subtitle {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .cruises-hero-badge {
+        font-size: 0.85rem;
+        padding: 0.6rem 1.2rem;
+    }
+
+    .cruises-hero-badge svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .cruises-container {
+        padding: 0 1rem 2rem;
+    }
+
+    .cruises-header h1 {
+        font-size: 1.6rem;
+    }
+
+    .pkg-card-title {
+        font-size: 1rem;
+    }
+
+    .pkg-price-value {
+        font-size: 1.15rem;
+    }
+}
