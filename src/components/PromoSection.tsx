@@ -142,9 +142,10 @@ export default function PromoSection() {
         const scrollPosition = el.scrollLeft;
         const cardsPerPage = 3;
         const pageWidth = (cardWidth + gap) * cardsPerPage;
-        const page = Math.round(scrollPosition / pageWidth);
+        // Use Math.round to get closest page, with better threshold
+        const page = Math.max(0, Math.min(Math.ceil(allShips.length / 3) - 1, Math.round(scrollPosition / pageWidth)));
         setCurrentPage(page);
-    }, []);
+    }, [allShips.length]);
 
     useEffect(() => {
         const el = scrollRef.current;
@@ -163,14 +164,31 @@ export default function PromoSection() {
         if (!el) return;
         const cardWidth = el.querySelector<HTMLElement>("[data-promo-card]")?.offsetWidth ?? 350;
         const gap = 24;
+        const cardsPerPage = 3;
+        const pageWidth = (cardWidth + gap) * cardsPerPage;
+        const maxPages = Math.ceil(allShips.length / 3);
+        
+        // Calculate target page
+        const currentScrollPage = Math.round(el.scrollLeft / pageWidth);
+        const targetPage = direction === "left" 
+            ? Math.max(0, currentScrollPage - 1)
+            : Math.min(maxPages - 1, currentScrollPage + 1);
+        
+        // Update indicator immediately for instant feedback
+        setCurrentPage(targetPage);
+        
         // Scroll by 3 cards at a time (for desktop view)
-        const distance = (cardWidth + gap) * 3;
+        const distance = (cardWidth + gap) * cardsPerPage;
         el.scrollBy({ left: direction === "left" ? -distance : distance, behavior: "smooth" });
     };
 
     const scrollToIndex = (index: number) => {
         const el = scrollRef.current;
         if (!el) return;
+        
+        // Update indicator immediately for instant feedback
+        setCurrentPage(index);
+        
         const cardWidth = el.querySelector<HTMLElement>("[data-promo-card]")?.offsetWidth ?? 350;
         const gap = 24;
         const cardsPerPage = 3;

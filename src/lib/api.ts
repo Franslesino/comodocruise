@@ -490,3 +490,36 @@ export function getDirectImageUrl(driveUrl: string): string {
     }
     return convertGoogleDriveUrl(driveUrl);
 }
+
+// Fetch a single ship by slug, with its cabins
+export async function fetchShipBySlug(slug: string): Promise<{
+    ship: ParsedShip;
+    cabins: CabinData[];
+} | null> {
+    try {
+        const [ships, allCabins] = await Promise.all([
+            fetchShips(),
+            fetchAllCabins(),
+        ]);
+        const ship = ships.find(s => s.slug === slug);
+        if (!ship) return null;
+
+        // Find cabins belonging to this ship
+        const shipCabins = allCabins.filter(c => boatNamesMatch(c.boat_name, ship.name));
+
+        return { ship, cabins: shipCabins };
+    } catch (error) {
+        console.error('Error fetching ship by slug:', error);
+        return null;
+    }
+}
+
+// Fetch all ship slugs (for static generation)
+export async function fetchAllShipSlugs(): Promise<string[]> {
+    try {
+        const ships = await fetchShips();
+        return ships.map(s => s.slug);
+    } catch {
+        return [];
+    }
+}
