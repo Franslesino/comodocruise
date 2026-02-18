@@ -17,7 +17,7 @@
 }
 
 .results-container--hero {
-    padding-top: 1rem;
+    padding-top: 0;
     padding-bottom: 3rem;
 }
 
@@ -626,87 +626,153 @@
     min-width: 320px;
 }
 
-.calendar-header {
+/* Dual Calendar Panel (Two Months Side by Side) - Matching BookingBar */
+.calendar-panel-dual {
+    width: 640px;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f3f4f6;
+    padding: 1rem;
+}
+
+/* Calendar Header with Navigation */
+.calendar-dual-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 1rem;
 }
 
-.cal-nav {
+/* Navigation Buttons */
+.calendar-nav-btn {
+    padding: 0.5rem;
     background: none;
     border: none;
-    font-size: 1.2rem;
-    color: #12214a;
     cursor: pointer;
-    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    color: #374151;
+    transition: background-color 0.2s ease;
 }
 
-.cal-nav:hover {
+.calendar-nav-btn:hover {
     background: #f3f4f6;
-    border-radius: 4px;
 }
 
-.cal-month {
-    font-size: 0.95rem;
+.calendar-nav-btn svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+/* Month Names Display */
+.calendar-months-display {
+    display: flex;
+    gap: 3rem;
+    justify-content: center;
+}
+
+.calendar-month-title {
+    font-family: var(--font-avenir), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 1rem;
     font-weight: 600;
-    color: #1f2937;
+    color: #000000;
 }
 
-.calendar-weekdays {
+/* Two Months Grid */
+.calendar-dual-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+/* Each Month Container */
+.calendar-month-container {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Weekday Headers */
+.calendar-weekdays-dual {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 0.25rem;
     margin-bottom: 0.5rem;
 }
 
-.cal-weekday {
+.calendar-weekday-dual {
     text-align: center;
     font-size: 0.75rem;
-    font-weight: 600;
-    color: #6b7280;
-    padding: 0.25rem;
+    font-weight: 500;
+    color: #9ca3af;
+    padding: 0.5rem 0;
 }
 
-.calendar-days {
+/* Calendar Days Grid */
+.calendar-days-dual {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 0.25rem;
 }
 
-.cal-day {
-    aspect-ratio: 1;
-    border: none;
+/* Individual Day Buttons */
+.calendar-day-dual {
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+    color: #000000;
     background: none;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    color: #374151;
+    border: none;
+    border-radius: 0.5rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    text-align: center;
 }
 
-.cal-day:not(.past):not(.empty):hover {
-    background: #f3f4f6;
+.calendar-day-dual:not(.past):not(.selected):hover {
+    background: #f0f9ff;
 }
 
-.cal-day.selected {
-    background: #12214a;
+.calendar-day-dual.selected {
+    background: #0ea5e9;
     color: white;
-    font-weight: 600;
 }
 
-.cal-day.in-range {
-    background: #e0f2f1;
-    color: #12214a;
+.calendar-day-dual.selected:hover {
+    background: #0284c7;
 }
 
-.cal-day.past {
+.calendar-day-dual.in-range {
+    background: #e0f2fe;
+    color: #0c4a6e;
+}
+
+.calendar-day-dual.past {
     color: #d1d5db;
     cursor: not-allowed;
 }
 
-.cal-day.empty {
-    cursor: default;
+.calendar-day-empty {
+    padding: 0.5rem 0;
+}
+
+/* Responsive for Dual Calendar */
+@media (max-width: 768px) {
+    .calendar-panel-dual {
+        width: 100%;
+        max-width: 360px;
+    }
+    
+    .calendar-dual-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .calendar-months-display {
+        gap: 0.5rem;
+    }
+    
+    .calendar-month-container:nth-child(2) {
+        display: none; /* Hide second month on mobile */
+    }
 }
 
 /* Ship Cards Container */
@@ -1729,7 +1795,7 @@
 .cabin-type-badge {
     display: inline-block;
     padding: 0.3rem 0.75rem;
-    background: #2e7d32;
+    background: #12214a;
     color: #fff;
     font-size: 0.7rem;
     font-weight: 600;
@@ -1788,7 +1854,7 @@
     align-items: center;
     background: none;
     border: none;
-    color: #2e7d32;
+    color: #12214a;
     font-weight: 600;
     font-size: 0.85rem;
     padding: 0;
@@ -1798,7 +1864,7 @@
 }
 
 .cabin-show-more-btn:hover {
-    color: #1b5e20;
+    color: #0f1c3f;
     text-decoration: underline;
 }
 

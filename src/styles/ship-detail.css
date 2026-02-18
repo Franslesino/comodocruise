@@ -1157,14 +1157,15 @@
 /* ═══════ NEW HERO SECTION ═══════ */
 .sd-hero-new {
     background: #fff;
-    padding: 2rem 0;
-    border-bottom: 1px solid #e5e7eb;
+    padding: 0;
+    border-bottom: none;
+    margin-bottom: 0;
 }
 
 .sd-hero-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 1.5rem 1.5rem 0 1.5rem;
     display: grid;
     grid-template-columns: 1fr;
     gap: 2rem;
@@ -1511,11 +1512,15 @@
 /* ═══════ STICKY NAVIGATION ═══════ */
 .sd-sticky-nav-new {
     position: sticky;
-    top: 80px;
+    top: 64px;
     background: #fff;
     border-bottom: 2px solid #e5e7eb;
+    border-top: none;
     z-index: 100;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin: 0;
+    margin-top: 0;
+    padding-top: 0;
 }
 
 .sd-nav-container {
@@ -1526,6 +1531,7 @@
     gap: 0.5rem;
     overflow-x: auto;
     scrollbar-width: none;
+    padding-top: 0;
 }
 
 .sd-nav-container::-webkit-scrollbar {
@@ -1553,6 +1559,19 @@
 .sd-nav-link.active {
     color: #12214a;
     border-bottom-color: #12214a;
+}
+
+/* Responsive sticky nav positioning */
+@media (max-width: 768px) {
+    .sd-sticky-nav-new {
+        top: 58px;
+    }
+}
+
+@media (max-width: 640px) {
+    .sd-sticky-nav-new {
+        top: 52px;
+    }
 }
 
 /* ═══════ SECTIONS ═══════ */

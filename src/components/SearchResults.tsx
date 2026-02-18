@@ -374,6 +374,24 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Auto-scroll on cruises page to hide gap after loading
+    useEffect(() => {
+        if (!loading && showHero) {
+            // Scroll to position where filter bar sticks to navbar
+            // This hides the gap between hero and filter bar
+            const timer = setTimeout(() => {
+                // Calculate scroll position based on viewport
+                // Hero is 60vh, we want to show about 20-30% of hero
+                const scrollAmount = Math.min(window.innerHeight * 0.4, 350);
+                window.scrollTo({
+                    top: scrollAmount,
+                    behavior: 'smooth'
+                });
+            }, 100); // Small delay to ensure page is fully rendered
+            return () => clearTimeout(timer);
+        }
+    }, [loading, showHero]);
+
     // Load itinerary from localStorage
     useEffect(() => {
         const stored = localStorage.getItem("comodocruise_itinerary");
@@ -675,12 +693,19 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
             setFormDateFrom(dateStr);
             setFormDateTo("");
         } else {
+            let newDateFrom = formDateFrom;
+            let newDateTo = dateStr;
             if (dateStr < formDateFrom) {
-                setFormDateTo(formDateFrom);
-                setFormDateFrom(dateStr);
-            } else {
-                setFormDateTo(dateStr);
+                newDateTo = formDateFrom;
+                newDateFrom = dateStr;
             }
+            setFormDateFrom(newDateFrom);
+            setFormDateTo(newDateTo);
+            // Auto-close dropdown and trigger search after selecting date range
+            setTimeout(() => {
+                setShowDateDropdown(false);
+                handleModifySearch();
+            }, 300);
         }
     };
 
@@ -711,6 +736,17 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
         };
         setSearchCriteria(newCriteria);
 
+        // Update URL params
+        const params = new URLSearchParams();
+        if (newCriteria.destinations && newCriteria.destinations.length > 0) {
+            params.set("destinations", newCriteria.destinations.join(","));
+        }
+        if (newCriteria.dateFrom) params.set("dateFrom", newCriteria.dateFrom);
+        if (newCriteria.dateTo) params.set("dateTo", newCriteria.dateTo);
+        if (newCriteria.duration) params.set("duration", newCriteria.duration.toString());
+        if (newCriteria.guests) params.set("guests", newCriteria.guests.toString());
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+
         try {
             const [shipsData, cabinsData] = await Promise.all([
                 fetchAllShips(),
@@ -723,7 +759,13 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
             }
 
             const shipsWithDetails: ShipWithDetails[] = shipsData.map((ship: Ship) => {
-                const shipCabins = cabinsData.filter(cabin => boatNamesMatch(cabin.boat_name, ship.name));
+                let shipCabins = cabinsData.filter(cabin => boatNamesMatch(cabin.boat_name, ship.name));
+                
+                // Filter cabins by guest capacity if guests filter is set
+                if (newCriteria.guests && newCriteria.guests > 0) {
+                    shipCabins = shipCabins.filter(cabin => cabin.total_capacity >= newCriteria.guests!);
+                }
+                
                 const validPrices = shipCabins.map(c => c.price).filter(p => p > 0);
                 const startFromPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
                 let isAvailable = false;
@@ -753,9 +795,13 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
             });
 
             let filteredShips = shipsWithDetails;
+            
+            // Filter by date availability
             if (newCriteria.dateFrom) {
-                filteredShips = shipsWithDetails.filter(s => s.isAvailable);
+                filteredShips = filteredShips.filter(s => s.isAvailable);
             }
+            
+            // Filter by destination
             if (newCriteria.destinations && newCriteria.destinations.length > 0) {
                 filteredShips = filteredShips.filter(ship => {
                     // If ship has no destination data, include it (like dynamic ships)
@@ -766,6 +812,26 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                     return newCriteria.destinations!.some(dest =>
                         ship.destinations.toLowerCase().includes(dest.toLowerCase())
                     );
+                });
+            }
+            
+            // Filter by trip duration
+            if (newCriteria.duration && newCriteria.duration > 0) {
+                filteredShips = filteredShips.filter(ship => {
+                    const tripDays = parseInt(ship.trip, 10) || 3;
+                    return tripDays === newCriteria.duration;
+                });
+            }
+            
+            // Filter by guest capacity (ship must have at least one cabin that can accommodate guests)
+            if (newCriteria.guests && newCriteria.guests > 0) {
+                filteredShips = filteredShips.filter(ship => {
+                    // If ship has cabins data, check if any cabin can accommodate the guests
+                    if (ship.cabins && ship.cabins.length > 0) {
+                        return ship.cabins.some(cabin => cabin.total_capacity >= newCriteria.guests!);
+                    }
+                    // If no cabin data, include the ship (dynamic ships)
+                    return true;
                 });
             }
 
@@ -832,51 +898,9 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                     <div className="results-layout-horizontal">
                         {/* Main Content - Full Width */}
                         <div className="results-main-full">
-                            {/* Back Button - only on results page */}
-                            {!showHero && (
-                                <div className="mb-4">
-                                    <LocaleLink
-                                        href="/"
-                                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-[#12214a] transition-colors"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                                        </svg>
-                                        Back to Homepage
-                                    </LocaleLink>
-                                </div>
-                            )}
-
-                            <h2 className="results-title" style={{ fontFamily: "var(--font-canto, Georgia, serif)", color: "#1a1a1a", fontSize: "2rem", marginBottom: "0.5rem" }}>
-                                {showHero ? "Cruise Packages" : "Select a Ship"}
-                            </h2>
-
-                            <div className="results-intro">
-                                {sortedShips.length > 0 ? (
-                                    <>
-                                        <p style={{ color: "#666", fontSize: "1rem", marginTop: 0 }}>
-                                            {showHero
-                                                ? <>Browse through our collection of <strong style={{ color: "#12214a" }}>{sortedShips.length} exclusive cruise packages</strong></>
-                                                : <>Found <strong style={{ color: "#12214a" }}>{sortedShips.length} ships</strong>. Please choose one to view available cabins.</>}
-                                        </p>
-                                        {searchCriteria.dateFrom && searchCriteria.dateTo && (
-                                            <p style={{ color: "#666", fontSize: "0.9rem", marginTop: "0.5rem", fontStyle: "italic" }}>
-                                                Showing trips available between <strong>{formatDateDisplay(searchCriteria.dateFrom)}</strong> and <strong>{formatDateDisplay(searchCriteria.dateTo)}</strong>
-                                            </p>
-                                        )}
-                                    </>
-                                ) : (
-                                    <div className="success-message" style={{ borderLeftColor: "#12214a", background: "#e8eaf2" }}>
-                                        <p>
-                                            <strong style={{ color: "#12214a" }}>No boats available for this date range.</strong>{" "}
-                                            Please try selecting a different date range or contact our team for assistance.
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Horizontal Filters Bar */}
+                            {/* Horizontal Filters Bar - Sticky at top */}
                             <div className="horizontal-filters-bar">
+                                <div className="filters-bar-inner">
                                 <div className="filters-left">
                                     <div className="search-input-wrapper">
                                         <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -952,35 +976,91 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                             {formDateFrom && <span className="filter-badge">✓</span>}
                                         </button>
                                         {showDateDropdown && (
-                                            <div className="filter-dropdown-panel calendar-panel">
-                                                <div className="calendar-header">
-                                                    <button className="cal-nav" onClick={() => { if (calendarMonth === 0) { setCalendarMonth(11); setCalendarYear(calendarYear - 1); } else setCalendarMonth(calendarMonth - 1); }}>←</button>
-                                                    <span className="cal-month">{monthNames[calendarMonth]} {calendarYear}</span>
-                                                    <button className="cal-nav" onClick={() => { if (calendarMonth === 11) { setCalendarMonth(0); setCalendarYear(calendarYear + 1); } else setCalendarMonth(calendarMonth + 1); }}>→</button>
+                                            <div className="filter-dropdown-panel calendar-panel-dual">
+                                                {/* Month Navigation */}
+                                                <div className="calendar-dual-header">
+                                                    <button className="calendar-nav-btn" onClick={() => { if (calendarMonth === 0) { setCalendarMonth(11); setCalendarYear(calendarYear - 1); } else setCalendarMonth(calendarMonth - 1); }}>
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                        </svg>
+                                                    </button>
+                                                    <div className="calendar-months-display">
+                                                        <span className="calendar-month-title">
+                                                            {monthNames[calendarMonth]} {calendarYear}
+                                                        </span>
+                                                        <span className="calendar-month-title">
+                                                            {monthNames[(calendarMonth + 1) % 12]} {calendarMonth === 11 ? calendarYear + 1 : calendarYear}
+                                                        </span>
+                                                    </div>
+                                                    <button className="calendar-nav-btn" onClick={() => { if (calendarMonth === 11) { setCalendarMonth(0); setCalendarYear(calendarYear + 1); } else setCalendarMonth(calendarMonth + 1); }}>
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                        </svg>
+                                                    </button>
                                                 </div>
-                                                <div className="calendar-weekdays">
-                                                    {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(day => (
-                                                        <span key={day} className="cal-weekday">{day}</span>
-                                                    ))}
-                                                </div>
-                                                <div className="calendar-days">
-                                                    {calendarDays.map((day, idx) => {
-                                                        if (!day) return <span key={idx} className="cal-day empty" />;
-                                                        const dateStr = toLocalDateStr(day);
-                                                        const today = new Date(); today.setHours(0, 0, 0, 0);
-                                                        const isPast = day < today;
-                                                        const isSelected = dateStr === formDateFrom || dateStr === formDateTo;
-                                                        const inRange = isDateInRange(day);
-                                                        return (
-                                                            <button key={idx} className={`cal-day ${isPast ? "past" : ""} ${isSelected ? "selected" : ""} ${inRange ? "in-range" : ""}`} onClick={() => !isPast && handleCalendarDateClick(day)} disabled={isPast}>
-                                                                {day.getDate()}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                                <div className="filter-actions">
-                                                    <button className="btn-clear-filter" onClick={() => { setFormDateFrom(""); setFormDateTo(""); }}>Clear</button>
-                                                    <button className="btn-apply-filter" onClick={() => { setShowDateDropdown(false); handleModifySearch(); }}>Apply</button>
+                                                
+                                                {/* Two Months Grid */}
+                                                <div className="calendar-dual-grid">
+                                                    {/* First Month */}
+                                                    <div className="calendar-month-container">
+                                                        <div className="calendar-weekdays-dual">
+                                                            {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(day => (
+                                                                <div key={day} className="calendar-weekday-dual">{day}</div>
+                                                            ))}
+                                                        </div>
+                                                        <div className="calendar-days-dual">
+                                                            {calendarDays.map((day, idx) => {
+                                                                if (!day) return <div key={idx} className="calendar-day-empty" />;
+                                                                const dateStr = toLocalDateStr(day);
+                                                                const today = new Date(); today.setHours(0, 0, 0, 0);
+                                                                const isPast = day < today;
+                                                                const isSelected = dateStr === formDateFrom || dateStr === formDateTo;
+                                                                const inRange = isDateInRange(day);
+                                                                return (
+                                                                    <button 
+                                                                        key={idx} 
+                                                                        className={`calendar-day-dual ${isPast ? "past" : ""} ${isSelected ? "selected" : ""} ${inRange && !isSelected ? "in-range" : ""}`} 
+                                                                        onClick={() => !isPast && handleCalendarDateClick(day)} 
+                                                                        disabled={isPast}
+                                                                    >
+                                                                        {day.getDate()}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Second Month */}
+                                                    <div className="calendar-month-container">
+                                                        <div className="calendar-weekdays-dual">
+                                                            {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(day => (
+                                                                <div key={`next-${day}`} className="calendar-weekday-dual">{day}</div>
+                                                            ))}
+                                                        </div>
+                                                        <div className="calendar-days-dual">
+                                                            {generateCalendarDays(
+                                                                calendarMonth === 11 ? calendarYear + 1 : calendarYear,
+                                                                (calendarMonth + 1) % 12
+                                                            ).map((day, idx) => {
+                                                                if (!day) return <div key={`next-${idx}`} className="calendar-day-empty" />;
+                                                                const dateStr = toLocalDateStr(day);
+                                                                const today = new Date(); today.setHours(0, 0, 0, 0);
+                                                                const isPast = day < today;
+                                                                const isSelected = dateStr === formDateFrom || dateStr === formDateTo;
+                                                                const inRange = isDateInRange(day);
+                                                                return (
+                                                                    <button 
+                                                                        key={`next-${idx}`} 
+                                                                        className={`calendar-day-dual ${isPast ? "past" : ""} ${isSelected ? "selected" : ""} ${inRange && !isSelected ? "in-range" : ""}`} 
+                                                                        onClick={() => !isPast && handleCalendarDateClick(day)} 
+                                                                        disabled={isPast}
+                                                                    >
+                                                                        {day.getDate()}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
@@ -1013,7 +1093,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                     </div>
 
                                     {/* Duration Dropdown */}
-                                    <div className="filter-dropdown-wrapper" ref={durationDropdownRef}>
+                                    <div className="filter-dropdown-wrapper filter-dropdown-wrapper--right" ref={durationDropdownRef}>
                                         <button className="filter-btn" onClick={() => setShowDurationDropdown(!showDurationDropdown)}>
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <circle cx="12" cy="12" r="10" />
@@ -1023,7 +1103,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                             {formDuration !== 3 && <span className="filter-badge">{formDuration}</span>}
                                         </button>
                                         {showDurationDropdown && (
-                                            <div className="filter-dropdown-panel">
+                                            <div className="filter-dropdown-panel filter-dropdown-panel--right">
                                                 <div className="filter-counter">
                                                     <span>Days</span>
                                                     <div className="counter-controls">
@@ -1041,7 +1121,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                     </div>
 
                                     {/* Guests Dropdown */}
-                                    <div className="filter-dropdown-wrapper" ref={guestsDropdownRef}>
+                                    <div className="filter-dropdown-wrapper filter-dropdown-wrapper--right" ref={guestsDropdownRef}>
                                         <button className="filter-btn" onClick={() => setShowGuestsDropdown(!showGuestsDropdown)}>
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -1050,7 +1130,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                             {formGuests !== 2 && <span className="filter-badge">{formGuests}</span>}
                                         </button>
                                         {showGuestsDropdown && (
-                                            <div className="filter-dropdown-panel">
+                                            <div className="filter-dropdown-panel filter-dropdown-panel--right">
                                                 <div className="filter-counter">
                                                     <span>Guests</span>
                                                     <div className="counter-controls">
@@ -1066,6 +1146,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                             </div>
                                         )}
                                     </div>
+                                </div>
                                 </div>
                             </div>
 
@@ -1131,6 +1212,52 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                     )}
                                 </div>
                             )}
+
+                            {/* Back Button - only on results page */}
+                            {!showHero && (
+                                <div className="mb-4" style={{ marginTop: "1.5rem" }}>
+                                    <LocaleLink
+                                        href="/"
+                                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-[#12214a] transition-colors"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                        </svg>
+                                        Back to Homepage
+                                    </LocaleLink>
+                                </div>
+                            )}
+
+                            {/* Title and Intro */}
+                            <div style={{ marginTop: showHero ? "1.5rem" : "0", marginBottom: "1.5rem" }}>
+                                <h2 className="results-title" style={{ fontFamily: "var(--font-canto, Georgia, serif)", color: "#1a1a1a", fontSize: "2rem", marginBottom: "0.5rem" }}>
+                                    {showHero ? "Cruise Packages" : "Select a Ship"}
+                                </h2>
+
+                                <div className="results-intro">
+                                    {sortedShips.length > 0 ? (
+                                        <>
+                                            <p style={{ color: "#666", fontSize: "1rem", marginTop: 0 }}>
+                                                {showHero
+                                                    ? <>Browse through our collection of <strong style={{ color: "#12214a" }}>{sortedShips.length} exclusive cruise packages</strong></>
+                                                    : <>Found <strong style={{ color: "#12214a" }}>{sortedShips.length} ships</strong>. Please choose one to view available cabins.</>}
+                                            </p>
+                                            {searchCriteria.dateFrom && searchCriteria.dateTo && (
+                                                <p style={{ color: "#666", fontSize: "0.9rem", marginTop: "0.5rem", fontStyle: "italic" }}>
+                                                    Showing trips available between <strong>{formatDateDisplay(searchCriteria.dateFrom)}</strong> and <strong>{formatDateDisplay(searchCriteria.dateTo)}</strong>
+                                                </p>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="success-message" style={{ borderLeftColor: "#12214a", background: "#e8eaf2" }}>
+                                            <p>
+                                                <strong style={{ color: "#12214a" }}>No boats available for this date range.</strong>{" "}
+                                                Please try selecting a different date range or contact our team for assistance.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
                             {/* Results Count */}
                             <div className="results-count-text">

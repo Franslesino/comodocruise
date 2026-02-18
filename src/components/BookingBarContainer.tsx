@@ -73,7 +73,8 @@ export default function BookingBarContainer() {
                     zIndex: 100,
                     width: '100%',
                     maxWidth: '1000px',
-                    padding: '0 24px',
+                    paddingLeft: '24px',
+                    paddingRight: '24px',
                     display: 'flex',
                     justifyContent: 'center'
                 }}

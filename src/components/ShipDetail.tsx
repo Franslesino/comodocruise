@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Fragment } from "react";
 import Image from "next/image";
 import LocaleLink from "./LocaleLink";
 import {
@@ -933,8 +933,8 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                         const tripNights = Math.max(1, parseInt(ship.tripDuration) - 1);
                                         
                                         return (
-                                            <>
-                                                <tr key={cabin.cabin_id || idx} className="sd-cabin-row">
+                                            <Fragment key={cabin.cabin_id || idx}>
+                                                <tr className="sd-cabin-row">
                                                     <td className="sd-cabin-image-cell">
                                                         <div className="sd-cabin-carousel">
                                                             <div className="sd-cabin-carousel-img-wrapper">
@@ -1180,7 +1180,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                     </td>
                                                 </tr>
                                             )}
-                                            </>
+                                            </Fragment>
                                         );
                                     })}
                                 </tbody>

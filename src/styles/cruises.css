@@ -11,10 +11,11 @@
 .cruises-hero {
     position: relative;
     width: 100%;
-    height: 100svh;
-    min-height: 100svh;
+    height: 60vh;
+    min-height: 500px;
+    max-height: 700px;
     overflow: hidden;
-    margin-bottom: 2.5rem;
+    margin-bottom: 0;
     display: flex;
     flex-direction: column;
 }
@@ -101,19 +102,88 @@
     padding: 0 1.5rem 3rem;
 }
 
+/* Results Container with Hero */
+.results-container--hero {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
+}
+
+@media (min-width: 640px) {
+    .results-container--hero {
+        padding: 0 2rem 3rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .results-container--hero {
+        padding: 0 2rem 4rem;
+    }
+}
+
 /* ============================================
    HORIZONTAL FILTER BAR
    ============================================ */
 .horizontal-filters-bar {
+    position: sticky;
+    top: 64px; /* Height of main navbar */
+    z-index: 100;
+    background: #ffffff;
+    border-bottom: 2px solid #e5e7eb;
+    margin: 0;
+    padding: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s ease, background-color 0.2s ease;
+    width: 100%;
+}
+
+.filters-bar-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 0.75rem 1.5rem;
-    margin-bottom: 1.5rem;
     gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+    .filters-bar-inner {
+        padding: 1rem 2rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .filters-bar-inner {
+        padding: 1rem 2rem;
+    }
+}
+
+.horizontal-filters-bar.scrolled {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+}
+
+/* Active Filters Row in Cruises Page */
+.cruises-page .active-filters-row {
+    max-width: 1280px;
+    margin: 0 auto;
+    background: #f9fafb;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+@media (min-width: 640px) {
+    .cruises-page .active-filters-row {
+        padding: 0.75rem 2rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .cruises-page .active-filters-row {
+        padding: 0.75rem 2rem;
+    }
 }
 
 .filters-left {
@@ -138,9 +208,9 @@
 
 .search-input {
     width: 250px;
-    padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border-radius: 50px; /* Oval/pill shape */
     font-size: 0.875rem;
     color: #374151;
     outline: none;
@@ -192,10 +262,10 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1.25rem;
     background: #ffffff;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border-radius: 50px; /* Oval/pill shape */
     font-size: 0.875rem;
     font-weight: 500;
     color: #374151;
@@ -256,6 +326,12 @@
     max-width: 350px;
     z-index: 1000;
     padding: 1rem;
+}
+
+/* Right-aligned dropdown for elements at the end of the filter bar */
+.filter-dropdown-panel--right {
+    left: auto;
+    right: 0;
 }
 
 .filter-checkbox {
@@ -1351,6 +1427,11 @@
    RESPONSIVE
    ============================================ */
 @media (max-width: 800px) {
+    .cruises-hero {
+        height: 50vh;
+        min-height: 400px;
+    }
+
     .cruises-hero h1 {
         font-size: 2.5rem;
     }
@@ -1359,7 +1440,16 @@
         font-size: 1.1rem;
     }
 
+    .cruises-hero-content {
+        padding: 2rem 1.5rem;
+    }
+
     .horizontal-filters-bar {
+        position: sticky;
+        top: 58px; /* Smaller navbar on tablet */
+    }
+
+    .filters-bar-inner {
         flex-direction: column;
         gap: 0.75rem;
         padding: 1rem;
@@ -1447,6 +1537,11 @@
 }
 
 @media (max-width: 480px) {
+    .cruises-hero {
+        height: 45vh;
+        min-height: 350px;
+    }
+
     .cruises-hero h1 {
         font-size: 2rem;
     }
@@ -1454,6 +1549,10 @@
     .cruises-hero-subtitle {
         font-size: 1rem;
         margin-bottom: 1.5rem;
+    }
+
+    .cruises-hero-content {
+        padding: 1.5rem 1rem;
     }
 
     .cruises-hero-badge {
@@ -1464,6 +1563,14 @@
     .cruises-hero-badge svg {
         width: 18px;
         height: 18px;
+    }
+
+    .horizontal-filters-bar {
+        top: 52px; /* Even smaller navbar on mobile */
+    }
+
+    .filters-bar-inner {
+        padding: 0.75rem 1rem;
     }
 
     .cruises-container {
