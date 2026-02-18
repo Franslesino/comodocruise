@@ -28,6 +28,7 @@ import {
 } from "@/types/api";
 import "@/styles/results.css";
 import "@/styles/cruises.css";
+import BookingForm from "./BookingForm";
 
 // Sort options
 const SORT_OPTIONS = [
@@ -172,6 +173,10 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
 
     // Track selected dates per cabin
     const [cabinSelectedDates, setCabinSelectedDates] = useState<Record<string, { dateFrom: string; dateTo: string }>>({});
+
+    // Itinerary panel
+    const [showItineraryPanel, setShowItineraryPanel] = useState(false);
+    const [showBookingForm, setShowBookingForm] = useState(false);
 
     // Update URL when selectedShipForCabins changes
     const updateShipQueryParam = (shipName: string | null) => {
@@ -651,6 +656,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
         }
         closeGuestModal();
         setOpenCabinDates(null);
+        setShowItineraryPanel(true);
     };
 
     const handleReserveNow = (cabin: CabinData, shipName: string, selectedDate?: string) => {
@@ -1654,7 +1660,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                                                     const tripDays = selectedShip ? (parseInt(selectedShip.trip, 10) || 3) : 3;
                                                                     const tripNights = tripDays - 1;
                                                                     if (cabinDates.length === 0) {
-                                                                        return <div style={{ padding: "16px", color: "#666", textAlign: "center" }}>No available dates found</div>;
+                                                                        return <div className="no-dates-msg">No available dates found</div>;
                                                                     }
                                                                     const maxDatesToShow = searchCriteria.dateFrom ? 5 : 10;
                                                                     return cabinDates.slice(0, maxDatesToShow).map((date, dateIdx) => {
@@ -1815,6 +1821,136 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                 </div>
             )}
 
+            {/* ===== FLOATING ITINERARY BUTTON ===== */}
+            {itineraryItems.length > 0 && !showItineraryPanel && (
+                <button className="itinerary-fab" onClick={() => setShowItineraryPanel(true)}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                        <rect x="9" y="3" width="6" height="4" rx="1" />
+                        <path d="M9 12h6M9 16h4" />
+                    </svg>
+                    <span>My Itinerary</span>
+                    <span className="itinerary-fab-badge">{itineraryItems.length}</span>
+                </button>
+            )}
+
+            {/* ===== ITINERARY PANEL ===== */}
+            {showItineraryPanel && (
+                <div className="itinerary-panel-overlay" onClick={() => setShowItineraryPanel(false)}>
+                    <div className="itinerary-panel" onClick={e => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="itinerary-panel-header">
+                            <div className="itinerary-panel-title">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                                    <rect x="9" y="3" width="6" height="4" rx="1" />
+                                    <path d="M9 12h6M9 16h4" />
+                                </svg>
+                                <span>My Itinerary</span>
+                                {itineraryItems.length > 0 && (
+                                    <span className="itinerary-count-badge">{itineraryItems.length}</span>
+                                )}
+                            </div>
+                            <button className="itinerary-panel-close" onClick={() => setShowItineraryPanel(false)}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="itinerary-panel-body">
+                            {itineraryItems.length === 0 ? (
+                                <div className="itinerary-empty">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5">
+                                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                                        <rect x="9" y="3" width="6" height="4" rx="1" />
+                                    </svg>
+                                    <p>No reservations yet.</p>
+                                    <p className="itinerary-empty-sub">Reserve a cabin to get started.</p>
+                                </div>
+                            ) : (
+                                <div className="itinerary-items-list">
+                                    {itineraryItems.map((item, idx) => (
+                                        <div key={idx} className="itinerary-item-card">
+                                            <div className="itinerary-item-top">
+                                                <div className="itinerary-item-info">
+                                                    <span className="itinerary-item-ship">{item.ship}</span>
+                                                    <span className="itinerary-item-cabin">{item.cabin}</span>
+                                                </div>
+                                                <button className="itinerary-item-remove" onClick={() => removeFromItinerary(idx)} title="Remove">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div className="itinerary-item-details">
+                                                <div className="itinerary-detail-row">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                                    </svg>
+                                                    <span>{formatDateDisplay(item.date)}</span>
+                                                </div>
+                                                <div className="itinerary-detail-row">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                                                        <circle cx="9" cy="7" r="4" />
+                                                        <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                                                        <path d="M16 3.13a4 4 0 010 7.75" />
+                                                    </svg>
+                                                    <span>{item.guests} {item.guests === 1 ? "guest" : "guests"}</span>
+                                                </div>
+                                                {item.price > 0 && (
+                                                    <div className="itinerary-item-price">
+                                                        {formatPrice(item.price)}
+                                                        <span className="itinerary-item-price-unit">/night</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        {itineraryItems.length > 0 && (
+                            <div className="itinerary-panel-footer">
+                                <div className="itinerary-summary">
+                                    <div className="itinerary-summary-row">
+                                        <span>Total Cabins</span>
+                                        <span className="itinerary-summary-value">{itineraryItems.length}</span>
+                                    </div>
+                                    <div className="itinerary-summary-row">
+                                        <span>Total Guests</span>
+                                        <span className="itinerary-summary-value">{itineraryItems.reduce((s, i) => s + i.guests, 0)}</span>
+                                    </div>
+                                    {itineraryTotal > 0 && (
+                                        <div className="itinerary-summary-row itinerary-summary-total">
+                                            <span>Estimated Total</span>
+                                            <span className="itinerary-summary-value">{formatPrice(itineraryTotal)}</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="itinerary-footer-actions">
+                                    <button className="itinerary-btn-clear" onClick={() => {
+                                        setItineraryItems([]);
+                                        localStorage.removeItem("comodocruise_itinerary");
+                                    }}>Clear All</button>
+                                    <button className="itinerary-btn-checkout" onClick={() => {
+                                        setShowItineraryPanel(false);
+                                        setShowBookingForm(true);
+                                    }}>Proceed to Booking →</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* ===== GUEST MODAL ===== */}
             {showGuestModal && pendingReservation && (
                 <div className="modal-overlay" onClick={closeGuestModal}>
@@ -1840,6 +1976,18 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                         <button className="guest-modal-confirm-btn" onClick={confirmReservation}>ADD TO ITINERARY</button>
                     </div>
                 </div>
+            )}
+
+            {/* ===== BOOKING FORM MODAL ===== */}
+            {showBookingForm && (
+                <BookingForm
+                    items={itineraryItems}
+                    onClose={() => setShowBookingForm(false)}
+                    onClearItinerary={() => {
+                        setItineraryItems([]);
+                        localStorage.removeItem("comodocruise_itinerary");
+                    }}
+                />
             )}
         </div>
     );
