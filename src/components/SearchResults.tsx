@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import LocaleLink from "./LocaleLink";
-import { getLocaleFromPathname } from "@/lib/i18n";
+import { getLocaleFromPathname, localizePath } from "@/lib/i18n";
 import {
     fetchAllShips,
     fetchAllCabins,
@@ -28,7 +28,6 @@ import {
 } from "@/types/api";
 import "@/styles/results.css";
 import "@/styles/cruises.css";
-import BookingForm from "./BookingForm";
 
 // Sort options
 const SORT_OPTIONS = [
@@ -176,7 +175,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
 
     // Itinerary panel
     const [showItineraryPanel, setShowItineraryPanel] = useState(false);
-    const [showBookingForm, setShowBookingForm] = useState(false);
+
 
     // Update URL when selectedShipForCabins changes
     const updateShipQueryParam = (shipName: string | null) => {
@@ -1942,7 +1941,8 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                     }}>Clear All</button>
                                     <button className="itinerary-btn-checkout" onClick={() => {
                                         setShowItineraryPanel(false);
-                                        setShowBookingForm(true);
+                                        const locale = getLocaleFromPathname(pathname);
+                                        router.push(localizePath("/reservation", locale));
                                     }}>Proceed to Booking →</button>
                                 </div>
                             </div>
@@ -1978,17 +1978,6 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                 </div>
             )}
 
-            {/* ===== BOOKING FORM MODAL ===== */}
-            {showBookingForm && (
-                <BookingForm
-                    items={itineraryItems}
-                    onClose={() => setShowBookingForm(false)}
-                    onClearItinerary={() => {
-                        setItineraryItems([]);
-                        localStorage.removeItem("comodocruise_itinerary");
-                    }}
-                />
-            )}
         </div>
     );
 }

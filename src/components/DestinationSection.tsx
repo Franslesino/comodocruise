@@ -355,7 +355,7 @@ export default function DestinationSection() {
                                                     </div>
                                                 )}
                                                 <LocaleLink
-                                                    href={`/ships/${ship.slug}`}
+                                                    href={`/cruises/${ship.slug}`}
                                                     className="px-4 py-1.5 bg-amber-400 hover:bg-amber-500 text-gray-900 rounded-full text-xs font-bold transition-colors"
                                                 >
                                                     Details

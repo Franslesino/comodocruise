@@ -162,7 +162,7 @@ export default function ShipsSection() {
                         {ships.map((ship, index) => (
                             <LocaleLink
                                 key={`${ship.id}-${index}`}
-                                href={`/ships/${ship.slug}`}
+                                href={`/cruises/${ship.slug}`}
                                 data-ship-card
                                 className="group flex-shrink-0 w-[260px] sm:w-[270px]"
                             >

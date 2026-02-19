@@ -3830,3 +3830,60 @@
         border-radius: 6px;
     }
 }
+
+/* ═══ PAGE MODE ═══ */
+.reservation-page-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 4rem;
+}
+
+.reservation-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: none;
+    border: none;
+    color: #09253f;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.5rem 0;
+    margin-bottom: 1.25rem;
+    letter-spacing: 0.01em;
+    transition: opacity 0.15s;
+}
+.reservation-back-btn:hover { opacity: 0.65; }
+.reservation-back-btn svg { flex-shrink: 0; }
+
+.bkf-page {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.bkf-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: none;
+    color: #09253f;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    letter-spacing: 0.01em;
+}
+.bkf-back-btn:hover { text-decoration: underline; }
+.bkf-back-btn svg { flex-shrink: 0; }
+
+@media (max-width: 720px) {
+    .bkf-page {
+        border-radius: 0;
+    }
+    .reservation-page-wrapper {
+        padding: 1rem 0.75rem 3rem;
+    }
+}

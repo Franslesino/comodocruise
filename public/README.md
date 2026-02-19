@@ -1,4 +1,4 @@
-# SEASVOYAGE Images
+# COMODOCRUISE Images
 
 Place your images in the following structure:
 

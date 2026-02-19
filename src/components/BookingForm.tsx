@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ItineraryItem } from "@/types/api";
 import { formatPrice } from "@/lib/api";
 import { CONTACT_INFO } from "@/config/contact";
@@ -24,8 +25,10 @@ const COUNTRY_CODES = [
 
 interface BookingFormProps {
     items: ItineraryItem[];
-    onClose: () => void;
+    onClose?: () => void;
+    onBack?: () => void;
     onClearItinerary: () => void;
+    mode?: "modal" | "page";
 }
 
 function formatDateDisplay(dateStr: string): string {
@@ -36,7 +39,8 @@ function formatDateDisplay(dateStr: string): string {
     return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-export default function BookingForm({ items, onClose, onClearItinerary }: BookingFormProps) {
+export default function BookingForm({ items, onClose, onBack, onClearItinerary, mode = "modal" }: BookingFormProps) {
+    const router = useRouter();
     // Guest info
     const [prefix, setPrefix] = useState("Mr.");
     const [firstName, setFirstName] = useState("");
@@ -67,7 +71,7 @@ export default function BookingForm({ items, onClose, onClearItinerary }: Bookin
 
     const buildWhatsAppMessage = () => {
         const payLabel = paymentType === "full" ? "Full Payment" : "Down Payment";
-        const header = `*New Booking Request — SEAs Voyage*\n\n`;
+        const header = `*New Booking Request — Comodo Cruise*\n\n`;
         const personal = `*Guest Information:*\n${prefix} ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${countryCode.code} ${phone}\n${country ? `Country: ${country}\n` : ""}${address ? `Address: ${address}, ${city}${stateProvince ? ", " + stateProvince : ""} ${zipCode}\n` : ""}`;
         const itinerary = `\n*Itinerary:*\n${items.map((item, i) =>
             `${i + 1}. ${item.ship} — ${item.cabin}\n   Date: ${formatDateDisplay(item.date)}\n   Guests: ${item.guests}${item.price > 0 ? `\n   Price: ${formatPrice(item.price)}/night` : ""}`
@@ -87,18 +91,40 @@ export default function BookingForm({ items, onClose, onClearItinerary }: Bookin
         setSubmitted(true);
     };
 
-    return (
-        <div className="bkf-overlay" onClick={onClose}>
-            <div className="bkf-modal" onClick={e => e.stopPropagation()}>
+    const handleDone = () => {
+        onClearItinerary();
+        if (mode === "page") {
+            router.push("/cruises");
+        } else {
+            onClose?.();
+        }
+    };
+
+    const handleBack = () => {
+        if (onBack) { onBack(); return; }
+        if (mode === "page") { router.back(); } else { onClose?.(); }
+    };
+
+    const content = (
+        <div className={mode === "page" ? "bkf-page" : "bkf-modal"} onClick={e => e.stopPropagation()}>
 
                 {/* ── Header ── */}
                 <div className="bkf-header">
-                    <span className="bkf-header-title">Complete Your Booking</span>
-                    <button className="bkf-close-btn" onClick={onClose} aria-label="Close">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                    </button>
+                    {mode === "page" ? (
+                        <button className="bkf-back-btn" onClick={handleBack} aria-label="Go back">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                            <span>Back to results</span>
+                        </button>
+                    ) : (
+                        <span className="bkf-header-title">Complete Your Booking</span>
+                    )}
+                    {mode === "modal" && (
+                        <button className="bkf-close-btn" onClick={onClose} aria-label="Close">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    )}
                 </div>
 
                 {submitted ? (
@@ -115,8 +141,8 @@ export default function BookingForm({ items, onClose, onClearItinerary }: Bookin
                             Thank you, <strong>{prefix} {firstName} {lastName}</strong>. Your booking request has been forwarded via WhatsApp. Our team will contact you at <strong>{countryCode.code} {phone}</strong> within 24 hours.
                         </p>
                         <div className="bkf-success-actions">
-                            <button className="bkf-btn-primary" onClick={() => { onClearItinerary(); onClose(); }}>Done</button>
-                            <button className="bkf-btn-ghost" onClick={onClose}>Keep Browsing</button>
+                            <button className="bkf-btn-primary" onClick={handleDone}>Done</button>
+                            <button className="bkf-btn-ghost" onClick={handleBack}>Keep Browsing</button>
                         </div>
                     </div>
                 ) : (
@@ -232,7 +258,7 @@ export default function BookingForm({ items, onClose, onClearItinerary }: Bookin
                             <div className="bkf-checkbox-group">
                                 <label className="bkf-checkbox-label">
                                     <input type="checkbox" className="bkf-checkbox" checked={newsletter} onChange={e => setNewsletter(e.target.checked)} />
-                                    <span>Sign up to receive news and offers from SEAs Voyage</span>
+                                    <span>Sign up to receive news and offers from Comodo Cruise</span>
                                 </label>
                                 <label className="bkf-checkbox-label">
                                     <input type="checkbox" className="bkf-checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} required />
@@ -325,7 +351,7 @@ export default function BookingForm({ items, onClose, onClearItinerary }: Bookin
                                 )}
 
                                 <div className="bkf-brand-footer">
-                                    <span className="bkf-brand-name">SEAS VOYAGE</span>
+                                    <span className="bkf-brand-name">COMODOCRUISE</span>
                                     <span className="bkf-brand-tagline">Rare journeys across the Togean &amp; Komodo Islands.</span>
                                     <div className="bkf-brand-contact">
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.99.587 3.842 1.598 5.395L2 22l4.74-1.559A9.945 9.945 0 0011.999 22C17.522 22 22 17.522 22 12S17.522 2 11.999 2zm0 18c-1.729 0-3.34-.494-4.7-1.348l-.338-.2-3.499 1.15 1.173-3.4-.22-.35A7.967 7.967 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z"/></svg>
@@ -336,7 +362,10 @@ export default function BookingForm({ items, onClose, onClearItinerary }: Bookin
                         </div>
                     </form>
                 )}
-            </div>
         </div>
     );
+
+    return mode === "modal"
+        ? <div className="bkf-overlay" onClick={onClose}>{content}</div>
+        : content;
 }

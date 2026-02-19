@@ -1,4 +1,4 @@
-# SEASVOYAGE
+# COMODOCRUISE
 
 A modern travel booking platform for sea voyages, built with Next.js 16 and TypeScript.
 
@@ -21,7 +21,7 @@ A modern travel booking platform for sea voyages, built with Next.js 16 and Type
 ### Installation
 
 ```bash
-cd seasvoyage
+cd comodocruise
 npm install
 ```
 
@@ -48,7 +48,7 @@ npm start
 ## Project Structure
 
 ```
-seasvoyage/
+comodocruise/
 ├── src/
 │   ├── app/                 # Next.js App Router pages
 │   │   ├── (en)/           # English routes (default)

@@ -76,7 +76,7 @@ export default function NavOverlayMenu({ isOpen, onClose }: NavOverlayMenuProps)
 
                 {/* Logo */}
                 <div className="pt-20 px-10">
-                    <h2 className="font-canto text-4xl text-white tracking-widest">SEASVOYAGE</h2>
+                    <h2 className="font-canto text-4xl text-white tracking-widest">COMODOCRUISE</h2>
                 </div>
 
                 {/* Navigation Links */}
