@@ -411,7 +411,8 @@ function getFallbackData(slug: string): DestData {
     };
 }
 
-const ALL_SLUGS = Object.keys(DEST_DATA);
+// Only slugs that have real trips in the API
+const API_SLUGS = ["komodo-national-park", "labuan-bajo"];
 
 function toAnchor(text: string) {
     return text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -425,7 +426,7 @@ export default function DestinationAboutPage({ slug }: Props) {
     const data = DEST_DATA[slug] ?? getFallbackData(slug);
 
     // 3 related destinations (not current slug)
-    const related = ALL_SLUGS.filter(s => s !== slug).slice(0, 3);
+    const related = API_SLUGS.filter(s => s !== slug);
 
     return (
         <div className="da-page">

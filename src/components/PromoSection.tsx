@@ -135,7 +135,7 @@ export default function PromoSection() {
         if (!el) return;
         setCanScrollLeft(el.scrollLeft > 10);
         setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
-        
+
         // Calculate current page based on scroll position (3 cards per page)
         const cardWidth = el.querySelector<HTMLElement>("[data-promo-card]")?.offsetWidth ?? 350;
         const gap = 24;
@@ -167,16 +167,16 @@ export default function PromoSection() {
         const cardsPerPage = 3;
         const pageWidth = (cardWidth + gap) * cardsPerPage;
         const maxPages = Math.ceil(allShips.length / 3);
-        
+
         // Calculate target page
         const currentScrollPage = Math.round(el.scrollLeft / pageWidth);
-        const targetPage = direction === "left" 
+        const targetPage = direction === "left"
             ? Math.max(0, currentScrollPage - 1)
             : Math.min(maxPages - 1, currentScrollPage + 1);
-        
+
         // Update indicator immediately for instant feedback
         setCurrentPage(targetPage);
-        
+
         // Scroll by 3 cards at a time (for desktop view)
         const distance = (cardWidth + gap) * cardsPerPage;
         el.scrollBy({ left: direction === "left" ? -distance : distance, behavior: "smooth" });
@@ -185,10 +185,10 @@ export default function PromoSection() {
     const scrollToIndex = (index: number) => {
         const el = scrollRef.current;
         if (!el) return;
-        
+
         // Update indicator immediately for instant feedback
         setCurrentPage(index);
-        
+
         const cardWidth = el.querySelector<HTMLElement>("[data-promo-card]")?.offsetWidth ?? 350;
         const gap = 24;
         const cardsPerPage = 3;
@@ -200,12 +200,12 @@ export default function PromoSection() {
             <section className="py-10 md:py-14 bg-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-6">
-            <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                Discover Our Finest Tour Collection
-            </h2>
+                        <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                            Discover Our Finest Tour Collection
+                        </h2>
                         {/* Placeholder for indicators */}
                         <div className="h-2.5" />
-            </div>
+                    </div>
                     {/* Skeleton cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[1, 2, 3].map(i => (
@@ -234,10 +234,10 @@ export default function PromoSection() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
                 <div className="text-center mb-6">
-            <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-            Discover Our Finest Tour Collection
-            </h2>
-                    
+                    <h2 className="font-canto text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                        Discover Our Finest Tour Collection
+                    </h2>
+
                     {/* Slide Indicators */}
                     {allShips.length > 3 && (
                         <div className="flex justify-center gap-2">
@@ -245,17 +245,16 @@ export default function PromoSection() {
                                 <button
                                     key={index}
                                     onClick={() => scrollToIndex(index)}
-                                    className={`transition-all duration-300 rounded-full ${
-                                        currentPage === index
+                                    className={`transition-all duration-300 rounded-full ${currentPage === index
                                             ? "w-10 h-2.5 bg-[#12214a]"
                                             : "w-2.5 h-2.5 bg-gray-300 hover:bg-gray-400"
-                                    }`}
+                                        }`}
                                     aria-label={`Go to page ${index + 1}`}
                                 />
                             ))}
                         </div>
                     )}
-        </div>
+                </div>
 
                 {/* Carousel Container */}
                 <div className="relative mt-8">
@@ -287,116 +286,117 @@ export default function PromoSection() {
                         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                     >
                         {allShips.map((ship, index) => {
-                        const rating = getRating(ship.name);
-                        const reviewCount = getReviewCount(ship.name);
-                        const favCount = getFavCount(ship.name);
-                        const promoTag = PROMO_TAGS[index % PROMO_TAGS.length];
-                        const activityBadge = ACTIVITY_BADGES[index % ACTIVITY_BADGES.length];
-                        const review = REVIEWS[index % REVIEWS.length];
+                            const rating = getRating(ship.name);
+                            const reviewCount = getReviewCount(ship.name);
+                            const favCount = getFavCount(ship.name);
+                            const promoTag = PROMO_TAGS[index % PROMO_TAGS.length];
+                            const activityBadge = ACTIVITY_BADGES[index % ACTIVITY_BADGES.length];
+                            const review = REVIEWS[index % REVIEWS.length];
 
-                        // Parse destinations into route segments
-                        const routeSegments = ship.destinations
-                            ? ship.destinations.split(/[,→\-–]/).map(s => s.trim()).filter(Boolean).slice(0, 3)
-                            : [ship.tripName || "Komodo National Park"];
+                            // Parse destinations into route segments
+                            const routeSegments = ship.destinations
+                                ? ship.destinations.split(/[,→\-–]/).map(s => s.trim()).filter(Boolean).slice(0, 3)
+                                : [ship.tripName || "Komodo National Park"];
 
-                        return (
-                            <LocaleLink
-                                key={`${ship.id}-${index}`}
-                                href={`/cruises/${ship.slug}`}
-                                data-promo-card
-                                className="group flex-shrink-0 w-[300px] md:w-[340px] lg:w-[360px] bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
-                            >
-                                {/* Image */}
-                                <div className="relative h-52 overflow-hidden">
-                                    <Image
-                                        src={ship.imageMain}
-                                        alt={ship.name}
-                                        fill
-                                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                        sizes="360px"
-                                    />
+                            return (
+                                <LocaleLink
+                                    key={`${ship.id}-${index}`}
+                                    href={`/cruises/${ship.slug}`}
+                                    data-promo-card
+                                    className="group flex-shrink-0 w-[300px] md:w-[340px] lg:w-[360px] bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                                >
+                                    {/* Image */}
+                                    <div className="relative h-52 overflow-hidden">
+                                        <Image
+                                            src={ship.imageMain}
+                                            alt={ship.name}
+                                            fill
+                                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                            sizes="360px"
+                                        />
 
-                                    {/* Activity badge top-left */}
-                                    <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm">
-                                        <span className="text-yellow-500 text-sm">⚓</span>
-                                        <span className="text-xs font-semibold text-gray-800">{activityBadge}</span>
-                                    </div>
+                                        {/* Activity badge top-left */}
+                                        <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm">
+                                            <span className="text-yellow-500 text-sm">⚓</span>
+                                            <span className="text-xs font-semibold text-gray-800">{activityBadge}</span>
+                                        </div>
 
-                                    {/* Heart / favorites top-right */}
-                                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2.5 py-1.5">
-                                        <HeartIcon className="w-4 h-4 text-white" />
-                                        <span className="text-xs font-medium text-white">{favCount}</span>
-                                    </div>
-                                </div>
-
-                                {/* Content */}
-                                <div className="p-4">
-                                    {/* Title + Price row */}
-                                    <div className="flex items-start justify-between gap-2 mb-2">
-                                        <h3 className="font-bold text-base text-gray-900 leading-tight line-clamp-2">
-                                            {ship.name} {ship.tripDuration} Days
-                                        </h3>
-                                        <div className="text-right flex-shrink-0">
-                                            <span className="text-[11px] text-gray-500 uppercase">From</span>
-                                            <p className="text-lg font-bold text-gray-900">{formatIDR(ship.lowestPrice)}</p>
+                                        {/* Heart / favorites top-right */}
+                                        <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2.5 py-1.5">
+                                            <HeartIcon className="w-4 h-4 text-white" />
+                                            <span className="text-xs font-medium text-white">{favCount}</span>
                                         </div>
                                     </div>
 
-                                    {/* Rating */}
-                                    <div className="flex items-center gap-2 mb-3">
-                                        {/* Stars */}
-                                        <div className="flex">
-                                            {[1, 2, 3, 4, 5].map(star => (
-                                                <StarIcon
-                                                    key={star}
-                                                    className={`w-4 h-4 ${star <= Math.round(rating / 2) ? "text-yellow-400" : "text-gray-200"}`}
-                                                />
+                                    {/* Content */}
+                                    <div className="p-4">
+                                        {/* Title + Price row */}
+                                        <div className="flex items-start justify-between gap-2 mb-2">
+                                            <h3 className="font-bold text-base text-gray-900 leading-tight line-clamp-2">
+                                                {ship.name} {ship.tripDuration} Days
+                                            </h3>
+                                            <div className="text-right flex-shrink-0">
+                                                <span className="text-[11px] text-gray-500 uppercase">From</span>
+                                                <p className="text-sm text-gray-400 line-through">{formatIDR(Math.round(ship.lowestPrice * 1.25))}</p>
+                                                <p className="text-lg font-bold text-red-600">{formatIDR(ship.lowestPrice)}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Rating */}
+                                        <div className="flex items-center gap-2 mb-3">
+                                            {/* Stars */}
+                                            <div className="flex">
+                                                {[1, 2, 3, 4, 5].map(star => (
+                                                    <StarIcon
+                                                        key={star}
+                                                        className={`w-4 h-4 ${star <= Math.round(rating / 2) ? "text-yellow-400" : "text-gray-200"}`}
+                                                    />
+                                                ))}
+                                            </div>
+                                            {/* Score badge */}
+                                            <span className={`${getRatingColor(rating)} text-white text-[11px] font-bold px-1.5 py-0.5 rounded`}>
+                                                {rating.toFixed(1)}
+                                            </span>
+                                            <span className="text-xs font-bold text-green-700 uppercase">{getRatingLabel(rating)}</span>
+                                            <span className="text-xs text-gray-400">|</span>
+                                            <span className="text-xs text-gray-500">{reviewCount} reviews</span>
+                                        </div>
+
+                                        {/* Route / Itinerary */}
+                                        <div className="flex items-center gap-1 mb-3 text-sm text-gray-600 flex-wrap">
+                                            {routeSegments.map((segment, i) => (
+                                                <span key={i} className="flex items-center gap-1">
+                                                    {i > 0 && <span className="text-gray-400">→</span>}
+                                                    <span>{segment}</span>
+                                                </span>
                                             ))}
                                         </div>
-                                        {/* Score badge */}
-                                        <span className={`${getRatingColor(rating)} text-white text-[11px] font-bold px-1.5 py-0.5 rounded`}>
-                                            {rating.toFixed(1)}
-                                        </span>
-                                        <span className="text-xs font-bold text-green-700 uppercase">{getRatingLabel(rating)}</span>
-                                        <span className="text-xs text-gray-400">|</span>
-                                        <span className="text-xs text-gray-500">{reviewCount} reviews</span>
-                                    </div>
 
-                                    {/* Route / Itinerary */}
-                                    <div className="flex items-center gap-1 mb-3 text-sm text-gray-600 flex-wrap">
-                                        {routeSegments.map((segment, i) => (
-                                            <span key={i} className="flex items-center gap-1">
-                                                {i > 0 && <span className="text-gray-400">→</span>}
-                                                <span>{segment}</span>
-                                            </span>
-                                        ))}
-                                    </div>
+                                        {/* Promo tag */}
+                                        <div className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md border ${promoTag.color} mb-4`}>
+                                            <span>🏷️</span>
+                                            {promoTag.label}
+                                        </div>
 
-                                    {/* Promo tag */}
-                                    <div className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md border ${promoTag.color} mb-4`}>
-                                        <span>🏷️</span>
-                                        {promoTag.label}
-                                    </div>
+                                        {/* Divider */}
+                                        <hr className="border-gray-100 mb-3" />
 
-                                    {/* Divider */}
-                                    <hr className="border-gray-100 mb-3" />
-
-                                    {/* Review */}
-                                    <div>
-                                        <p className="text-sm text-gray-500 leading-relaxed line-clamp-3 italic mb-2">
-                                            <span className="text-lg text-gray-400 not-italic">&ldquo;</span>
-                                            {review.text}
-                                        </p>
-                                        <p className="text-sm">
-                                            <span className="font-semibold text-gray-800">{review.author}</span>
-                                            <span className="text-gray-400"> – </span>
-                                            <span className="text-gray-500">{review.country}</span>
-                                        </p>
+                                        {/* Review */}
+                                        <div>
+                                            <p className="text-sm text-gray-500 leading-relaxed line-clamp-3 italic mb-2">
+                                                <span className="text-lg text-gray-400 not-italic">&ldquo;</span>
+                                                {review.text}
+                                            </p>
+                                            <p className="text-sm">
+                                                <span className="font-semibold text-gray-800">{review.author}</span>
+                                                <span className="text-gray-400"> – </span>
+                                                <span className="text-gray-500">{review.country}</span>
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                            </LocaleLink>
-                        );
-                    })}
+                                </LocaleLink>
+                            );
+                        })}
                     </div>
                 </div>
             </div>

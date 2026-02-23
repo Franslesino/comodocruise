@@ -203,7 +203,10 @@ export default function ShipsSection() {
                                     </p>
                                     {ship.lowestPrice > 0 && (
                                         <p className="text-sm mt-1">
-                                            <span className="font-semibold text-neutral-900">
+                                            <span className="text-neutral-400 line-through text-xs mr-1">
+                                                {formatPriceIDR(Math.round(ship.lowestPrice * 1.25))}
+                                            </span>
+                                            <span className="font-semibold text-red-600">
                                                 {formatPriceIDR(ship.lowestPrice)}
                                             </span>
                                             <span className="text-neutral-500"> /cabin</span>

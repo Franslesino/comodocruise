@@ -41,20 +41,20 @@ function createDestinationFromShips(destName: string, ships: ParsedShip[]): Dest
 
     const destMeta: Record<string, Partial<Destination>> = {
         'komodo national park': {
-            location: 'East Nusa Tenggara',
-            description: 'Home to the legendary Komodo dragons and pristine coral reefs',
-            highlights: ['Komodo Dragons', 'Pink Beach', 'Padar Island', 'World-class diving'],
-            category: 'Wildlife & Nature',
-            rating: 4.8,
-            // Use local hero image if available
+            location: 'East Nusa Tenggara, Indonesia',
+            description: 'A UNESCO World Heritage Site spanning 1,817 km² across rugged volcanic islands. Home to 5,700+ wild Komodo dragons, manta rays, and some of the richest coral reefs on Earth — all reachable by liveaboard.',
+            highlights: ['Rinca Island', 'Padar Island', 'Pink Beach', 'Manta Point', 'Komodo Island', 'Gili Lawa Sunset'],
+            category: 'UNESCO World Heritage',
+            rating: 4.9,
             image: '/public/komodo-hero.webp'
         },
         'labuan bajo': {
             location: 'Flores, East Nusa Tenggara',
-            description: 'Gateway to Komodo National Park with stunning sunsets and marine life',
-            highlights: ['Gateway to Komodo', 'Sunset views', 'Marine tours', 'Island hopping'],
-            category: 'Adventure & Nature',
-            rating: 4.6
+            description: 'The jumping-off point for Komodo expeditions — a fishing-town-turned-dive-capital perched on one of the most scenic harbours in Southeast Asia. Day trips reach pristine islands in under an hour.',
+            highlights: ['Kelor Island', 'Batu Bolong Dive Site', 'Kalong Island', 'Gili Lawa Darat', 'Kanawa Island', 'Mess Hall Sunset'],
+            category: 'Dive & Adventure Hub',
+            rating: 4.7,
+            image: '/public/destinations/destination_labuan_bajo.webp'
         }
     };
 
@@ -181,7 +181,7 @@ export default function DestinationSection() {
                             <button
                                 onClick={goPrev}
                                 className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors border border-gray-200"
-                            
+
                             >
                                 <ChevronLeftIcon className="w-5 h-5 text-gray-700" />
                             </button>
@@ -306,7 +306,7 @@ export default function DestinationSection() {
                                                     {ship.name}
                                                 </p>
                                                 <p className="text-xs text-gray-500 mt-0.5">{ship.tripName || `${ship.tripDuration} Days Trip`}</p>
-                                                
+
                                                 {/* Stats Row */}
                                                 <div className="flex items-center gap-3 mt-2">
                                                     {ship.tripDuration && (
@@ -345,7 +345,14 @@ export default function DestinationSection() {
                                                 {ship.lowestPrice && ship.lowestPrice > 0 && (
                                                     <div className="text-right">
                                                         <p className="text-xs text-gray-500">From</p>
-                                                        <p className="text-sm font-bold text-gray-900">
+                                                        <p className="text-xs text-gray-400 line-through">
+                                                            {new Intl.NumberFormat('id-ID', {
+                                                                style: 'currency',
+                                                                currency: 'IDR',
+                                                                maximumFractionDigits: 0,
+                                                            }).format(Math.round(ship.lowestPrice * 1.25))}
+                                                        </p>
+                                                        <p className="text-sm font-bold text-red-600">
                                                             {new Intl.NumberFormat('id-ID', {
                                                                 style: 'currency',
                                                                 currency: 'IDR',
@@ -381,15 +388,9 @@ export default function DestinationSection() {
                     </div>
                 </div>
 
-                {/* View All Destinations (above bottom choices) */}
-                <div className="mt-8 flex justify-end">
-                    <LocaleLink
-                        href="/destinations"
-                        className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline"
-                    >
-                        View All Destinations
-                        <ChevronRightIcon className="w-4 h-4" />
-                    </LocaleLink>
+                {/* Hint text above thumbnail strip */}
+                <div className="mt-8">
+                    <p className="text-sm text-gray-500">More Destinations</p>
                 </div>
 
                 {/* Bottom Destination Slider (thumbnails only) */}
@@ -408,11 +409,10 @@ export default function DestinationSection() {
                                         <button
                                             key={dest.id}
                                             onClick={() => setActiveIndex(idx)}
-                                            className={`flex-shrink-0 w-[calc(20%-10px)] min-w-[140px] rounded-xl overflow-hidden border-2 transition-all duration-300 text-left ${
-                                                idx === activeIndex
-                                                    ? 'border-blue-600 shadow-lg scale-[1.02]'
-                                                    : 'border-transparent hover:border-gray-300 opacity-70 hover:opacity-100'
-                                            }`}
+                                            className={`flex-shrink-0 w-[calc(20%-10px)] min-w-[140px] rounded-xl overflow-hidden border-2 transition-all duration-300 text-left ${idx === activeIndex
+                                                ? 'border-blue-600 shadow-lg scale-[1.02]'
+                                                : 'border-transparent hover:border-gray-300 opacity-70 hover:opacity-100'
+                                                }`}
                                         >
                                             <div className="relative aspect-[16/10] bg-gradient-to-br from-emerald-100 via-blue-50 to-teal-100 overflow-hidden">
                                                 <Image
@@ -441,11 +441,10 @@ export default function DestinationSection() {
                                 <button
                                     key={idx}
                                     onClick={() => setActiveIndex(idx)}
-                                    className={`rounded-full transition-all duration-300 ${
-                                        idx === activeIndex
-                                            ? 'w-6 h-2 bg-blue-600'
-                                            : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
-                                    }`}
+                                    className={`rounded-full transition-all duration-300 ${idx === activeIndex
+                                        ? 'w-6 h-2 bg-blue-600'
+                                        : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+                                        }`}
                                 />
                             ))}
                         </div>

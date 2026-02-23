@@ -668,7 +668,7 @@ export default function ExperiencesPage({ }: Props) {
 
                     <div className="exp-spotlight-list">
                         {filteredSpotlight.length === 0 && (
-                            <p style={{ textAlign: "center", color: "#94a3b8", padding: "2rem 0" }}>
+                            <p style={{ textAlign: "center", color: "#94a3b8", paddingTop: "2rem", paddingBottom: "2rem" }}>
                                 No detailed spotlights for this category yet.
                             </p>
                         )}
