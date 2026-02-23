@@ -10,21 +10,21 @@ import PromoSection from "@/components/PromoSection";
 import CruisePackagesSection from "@/components/CruisePackagesSection";
 import DestinationSection from "@/components/DestinationSection";
 import ExperienceSection from "@/components/ExperienceSection";
-import TravelGuideSection from "@/components/TravelGuideSection";
+
 import FooterSection from "@/components/FooterSection";
 import BookingBarContainer from "@/components/BookingBarContainer";
 import { useHashScroll } from "@/hooks/useHashScroll";
 
 export default function HomePage() {
     useHashScroll();
-    
+
     return (
         <>
             <Navbar />
-            
+
             {/* Booking Bar Container - handles hero/header transition */}
             <BookingBarContainer />
-            
+
             <main>
                 {/* Hero Section with Booking Bar */}
                 <Hero />
@@ -48,12 +48,6 @@ export default function HomePage() {
                 <div id="experiences" className="scroll-mt-24 md:scroll-mt-28">
                     <ExperienceSection />
                 </div>
-
-                {/* Travel Guide & Updates */}
-                <div id="travel-guide" className="scroll-mt-24 md:scroll-mt-28">
-                    <TravelGuideSection />
-                </div>
-
                 {/* Footer */}
                 <FooterSection />
             </main>

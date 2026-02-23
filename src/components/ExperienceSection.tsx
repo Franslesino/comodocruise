@@ -12,7 +12,6 @@ interface Experience {
     description: string;
     category: string;
     rating: number;
-    price: string;
     image: string | null;
 }
 
@@ -20,82 +19,110 @@ const experiences: Experience[] = [
     {
         id: "snorkeling-coral-garden",
         title: "Snorkeling at Pristine Coral Gardens",
-        location: "Togean Islands",
-        description: "Dive into crystal-clear waters and explore vibrant coral reefs teeming with tropical fish and marine life.",
-        category: "Water Activity",
+        location: "Togean Islands, Central Sulawesi",
+        description: "Glide through one of Earth's most biodiverse coral ecosystems — vivid with turtles, napoleon wrasse, and sea fans untouched by mass tourism.",
+        category: "Diving & Snorkelling",
         rating: 4.95,
-        price: "Rp650.000",
         image: "/public/destinations/kadidiri/experience.webp",
     },
     {
         id: "komodo-dragon-trek",
         title: "Komodo Dragon Trekking",
-        location: "Komodo National Park",
-        description: "Guided expedition to observe the legendary Komodo dragons in their natural habitat on Rinca Island.",
+        location: "Komodo National Park, East Nusa Tenggara",
+        description: "Walk alongside a UNESCO World Heritage ranger through Rinca Island's savannah, coming face-to-face with Komodo dragons up to 3 metres long.",
         category: "Wildlife",
         rating: 4.92,
-        price: "Rp850.000",
-        image: "/images/destinations/komodo-national-park-landscape.jpg",
+        image: "/public/destinations/destination_rinca.webp",
     },
     {
         id: "sunset-kayaking",
         title: "Sunset Kayaking & Mangrove Tour",
-        location: "Kadidiri Island",
-        description: "Paddle through serene mangrove channels as the sky paints golden hues over the horizon.",
-        category: "Water Activity",
+        location: "Kadidiri Island, Togean Islands",
+        description: "Paddle through ancient mangrove tunnels as kingfishers dart overhead, arriving at the open bay exactly at golden hour.",
+        category: "Beach & Relaxation",
         rating: 4.88,
-        price: "Rp450.000",
         image: "/public/destinations/kadidiri/mood.webp",
     },
     {
         id: "village-cultural-visit",
-        title: "Traditional Village Cultural Visit",
-        location: "Malenge Island",
-        description: "Immerse yourself in Bajo sea-nomad culture with traditional cooking, weaving, and storytelling.",
+        title: "Bajo Sea-Nomad Village Immersion",
+        location: "Bomba Village, Togean Islands",
+        description: "Walk the boardwalks of a stilted sea-village, share a meal, and learn the centuries-old fishing traditions of the Bajo people.",
         category: "Cultural",
         rating: 4.90,
-        price: "Rp350.000",
-        image: "/public/destinations/malengue/experience.webp",
+        image: "/public/local-community-1.webp",
     },
     {
         id: "night-diving",
         title: "Night Diving with Bioluminescence",
-        location: "Una-Una Island",
-        description: "Experience the magical underwater glow as bioluminescent plankton light up around you in the dark waters.",
-        category: "Water Activity",
+        location: "Una-Una Island, Gulf of Tomini",
+        description: "Dive into darkness and watch the sea ignite — every movement trails blue fire as Una-Una's geothermal waters glow around you.",
+        category: "Diving & Snorkelling",
         rating: 4.97,
-        price: "Rp1.200.000",
         image: "/public/destinations/una-una/experience.webp",
     },
     {
         id: "island-hopping",
         title: "Full-Day Island Hopping Adventure",
-        location: "Togean Archipelago",
-        description: "Visit 4 stunning islands in one day — swim in jellyfish lake, explore hidden lagoons, and relax on white-sand beaches.",
-        category: "Adventure",
+        location: "Togean Archipelago, Central Sulawesi",
+        description: "Swim in a stingless jellyfish lake, kayak a hidden lagoon, picnic on a deserted sandbar, and snorkel a coral wall at sunset — all in one day.",
+        category: "Diving & Snorkelling",
         rating: 4.93,
-        price: "Rp750.000",
-        image: "/public/wildlife/sea/stingless-jellyfish/hero.webp",
+        image: "/public/destinations/destination_pulau_puat.webp",
     },
     {
-        id: "fishing-local",
+        id: "hiking-viewpoints",
+        title: "Summit Hike & Panoramic Viewpoint",
+        location: "Padar Island, Komodo National Park",
+        description: "Conquer Padar Island's ridge at sunrise for a 360° panorama of three bays with pink, black, and white sand beaches stretching below.",
+        category: "Trekking",
+        rating: 4.94,
+        image: "/public/destinations/destination_padar.webp",
+    },
+    {
+        id: "traditional-fishing",
         title: "Traditional Fishing with Locals",
-        location: "Walea Kodi",
-        description: "Learn centuries-old fishing techniques from local fishermen and cook your catch over a beachside fire.",
+        location: "Walea Kodi, Central Sulawesi",
+        description: "Join a local fisherman before dawn, cast hand-lines under the stars, then cook your catch over a coconut-husk fire on a private beach.",
         category: "Cultural",
         rating: 4.85,
-        price: "Rp400.000",
-        image: "/public/destinations/walea-kodi/experience.webp",
+        image: "/public/programs_real/traditional-fishing.png",
     },
     {
-        id: "jungle-waterfall-trek",
+        id: "jungle-waterfall",
         title: "Jungle Trek to Hidden Waterfall",
-        location: "Bomba, Togean",
-        description: "Hike through lush tropical jungle to discover a secluded waterfall surrounded by ancient trees and birdsong.",
-        category: "Adventure",
+        location: "Bomba, Togean Islands",
+        description: "Hike through primary rainforest alive with hornbills and cuscus to a hidden cascade tumbling into a clear natural plunge pool.",
+        category: "Trekking",
         rating: 4.87,
-        price: "Rp500.000",
         image: "/public/destinations/bomba/experience.webp",
+    },
+    {
+        id: "stargazing",
+        title: "Open-Ocean Stargazing Night",
+        location: "Open Sea, Gulf of Tomini",
+        description: "Lie back on the upper deck far from any city light as the full Milky Way arches across the equatorial sky, guided by Indonesian coffee and constellation stories.",
+        category: "Night Experience",
+        rating: 4.96,
+        image: "/public/programs/program-stargazing.webp",
+    },
+    {
+        id: "sunbathing-beach",
+        title: "Sunbathing on a Deserted Island",
+        location: "Pulau Puah, Togean Islands",
+        description: "A perfect crescent of white sand with zero other visitors — just you, the coconut palms, cold-pressed coconut water, and the open sea.",
+        category: "Beach & Relaxation",
+        rating: 4.89,
+        image: "/public/destinations_real/destination_pulau_puah.webp",
+    },
+    {
+        id: "wildlife-spotting",
+        title: "Wildlife Spotting — Land & Sea",
+        location: "Komodo & Togean Islands",
+        description: "From hawksbill turtles surfacing at dusk to hornbills calling across the forest canopy at dawn — our naturalists know exactly where the wild things are.",
+        category: "Wildlife",
+        rating: 4.91,
+        image: "/public/programs_real/wildlife-spotting.png",
     },
 ];
 
@@ -237,33 +264,11 @@ export default function ExperienceSection({ embedded = false }: ExperienceSectio
                                         {exp.description}
                                     </p>
                                     <p className="text-sm mt-1.5">
-                                        <span className="font-semibold text-neutral-900">
-                                            {exp.price}
-                                        </span>
-                                        <span className="text-neutral-500"> /{t("experience.perPerson")}</span>
-                                        <span className="text-neutral-400 ml-1">·</span>
-                                        <span className="text-neutral-700 ml-1">★ {exp.rating.toFixed(2)}</span>
+                                        <span className="text-neutral-700">★ {exp.rating.toFixed(2)}</span>
                                     </p>
                                 </div>
                             </LocaleLink>
                         ))}
-
-                        {/* "View All" card — hidden when embedded inside the activities page */}
-                        {!embedded && (
-                            <LocaleLink
-                                href="/activities"
-                                className="group flex-shrink-0 w-[200px] sm:w-[210px] flex flex-col items-center justify-center"
-                            >
-                                <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center mb-4 group-hover:bg-teal-100 transition-colors">
-                                    <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                    </svg>
-                                </div>
-                                <span className="font-semibold text-sm text-neutral-900 group-hover:text-teal-700 transition-colors">
-                                    {t("experience.viewAll")}
-                                </span>
-                            </LocaleLink>
-                        )}
                     </div>
                 </div>
             </div>

@@ -649,7 +649,6 @@ export default function ExperiencesPage({ }: Props) {
                             className={`exp-filter-pill${activeCategory === cat ? " exp-filter-pill--active" : ""}`}
                             onClick={() => handleCategoryChange(cat)}
                         >
-                            <span>{CATEGORY_ICONS[cat]}</span>
                             {cat}
                         </button>
                     ))}
