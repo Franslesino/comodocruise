@@ -132,6 +132,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
     const [showDateDropdown, setShowDateDropdown] = useState(false);
     const [showDurationDropdown, setShowDurationDropdown] = useState(false);
     const [showGuestsDropdown, setShowGuestsDropdown] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // Calendar state
     const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
@@ -206,7 +207,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                         .map(id => DESTINATIONS.find(d => d.id === id)?.name || id)
                         .join(", ");
                 }
-                
+
                 // Use dateFrom and dateTo from params if available
                 if (dateFromParam) criteria.dateFrom = dateFromParam;
                 if (dateToParam) {
@@ -218,7 +219,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                     start.setDate(start.getDate() + duration - 1);
                     criteria.dateTo = toLocalDateStr(start);
                 }
-                
+
                 if (durationParam) criteria.duration = parseInt(durationParam, 10);
                 if (guestsParam) criteria.guests = parseInt(guestsParam, 10);
 
@@ -346,22 +347,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                     console.log(`[SearchResults] After availability filter: ${filteredShips.length} of ${shipsWithDetails.length} ships available`);
                 }
 
-                // Filter by destination (include ships with empty destinations as they are available)
-                if (criteria.destinations && criteria.destinations.length > 0) {
-                    const beforeDestFilter = filteredShips.length;
-                    filteredShips = filteredShips.filter(ship => {
-                        // If ship has no destination data, include it (like dynamic ships)
-                        if (!ship.destinations || ship.destinations.trim() === "") {
-                            return true;
-                        }
-                        // Otherwise check if destination matches
-                        return criteria.destinations!.some(dest =>
-                            ship.destinations.toLowerCase().includes(dest.toLowerCase()) ||
-                            ship.name.toLowerCase().includes(dest.toLowerCase())
-                        );
-                    });
-                    console.log(`[SearchResults] After destination filter: ${filteredShips.length} of ${beforeDestFilter} ships match destinations`);
-                }
+                // NOTE: Destination filtering is now done reactively via sortedShips (using formDestinations state)
 
                 const total = filteredShips.reduce((sum, s) => sum + s.availableCabins, 0);
                 console.log(`[SearchResults] Final result: ${filteredShips.length} ships with ${total} total cabins`);
@@ -375,32 +361,17 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
         }
 
         loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Auto-scroll on cruises page to hide gap after loading
-    useEffect(() => {
-        if (!loading && showHero) {
-            // Scroll to position where filter bar sticks to navbar
-            // This hides the gap between hero and filter bar
-            const timer = setTimeout(() => {
-                // Calculate scroll position based on viewport
-                // Hero is 60vh, we want to show about 20-30% of hero
-                const scrollAmount = Math.min(window.innerHeight * 0.4, 350);
-                window.scrollTo({
-                    top: scrollAmount,
-                    behavior: 'smooth'
-                });
-            }, 100); // Small delay to ensure page is fully rendered
-            return () => clearTimeout(timer);
-        }
-    }, [loading, showHero]);
+
+
 
     // Load itinerary from localStorage
     useEffect(() => {
         const stored = localStorage.getItem("comodocruise_itinerary");
         if (stored) {
-            try { setItineraryItems(JSON.parse(stored)); } catch {}
+            try { setItineraryItems(JSON.parse(stored)); } catch { }
         }
     }, []);
 
@@ -431,8 +402,8 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
             if (Object.keys(newCache).length > 0) {
                 setCabinImagesCache(prev => ({ ...prev, ...newCache }));
             }
-        }).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        }).catch(() => { });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedShipForCabins, ships]);
 
     // Close dropdowns on outside click
@@ -457,8 +428,24 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                 const matchName = ship.name.toLowerCase().includes(query);
                 const matchDestinations = ship.destinations?.toLowerCase().includes(query);
                 const matchTrip = ship.trip_name?.toLowerCase().includes(query);
-                return matchName || matchDestinations || matchTrip;
+                if (!(matchName || matchDestinations || matchTrip)) return false;
             }
+
+            // Filter by destination (sidebar checkboxes)
+            if (formDestinations.length > 0) {
+                // If ship has no destination data, include it (dynamic ships from API)
+                if (!ship.destinations || ship.destinations.trim() === "") {
+                    // keep it — dynamic ship
+                } else {
+                    const matchesDest = formDestinations.some(dest => {
+                        const destName = DESTINATIONS.find(d => d.id === dest)?.name || dest;
+                        return ship.destinations.toLowerCase().includes(destName.toLowerCase()) ||
+                            ship.destinations.toLowerCase().includes(dest.toLowerCase());
+                    });
+                    if (!matchesDest) return false;
+                }
+            }
+
             return true;
         })
         .sort((a, b) => {
@@ -765,12 +752,12 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
 
             const shipsWithDetails: ShipWithDetails[] = shipsData.map((ship: Ship) => {
                 let shipCabins = cabinsData.filter(cabin => boatNamesMatch(cabin.boat_name, ship.name));
-                
+
                 // Filter cabins by guest capacity if guests filter is set
                 if (newCriteria.guests && newCriteria.guests > 0) {
                     shipCabins = shipCabins.filter(cabin => cabin.total_capacity >= newCriteria.guests!);
                 }
-                
+
                 const validPrices = shipCabins.map(c => c.price).filter(p => p > 0);
                 const startFromPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
                 let isAvailable = false;
@@ -800,12 +787,12 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
             });
 
             let filteredShips = shipsWithDetails;
-            
+
             // Filter by date availability
             if (newCriteria.dateFrom) {
                 filteredShips = filteredShips.filter(s => s.isAvailable);
             }
-            
+
             // Filter by destination
             if (newCriteria.destinations && newCriteria.destinations.length > 0) {
                 filteredShips = filteredShips.filter(ship => {
@@ -819,7 +806,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                     );
                 });
             }
-            
+
             // Filter by trip duration
             if (newCriteria.duration && newCriteria.duration > 0) {
                 filteredShips = filteredShips.filter(ship => {
@@ -827,7 +814,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                     return tripDays === newCriteria.duration;
                 });
             }
-            
+
             // Filter by guest capacity (ship must have at least one cabin that can accommodate guests)
             if (newCriteria.guests && newCriteria.guests > 0) {
                 filteredShips = filteredShips.filter(ship => {
@@ -866,21 +853,35 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                         Your browser does not support the video tag.
                     </video>
                     <div className="cruises-hero__overlay" />
-                    <div className="cruises-hero-content">
-                        <h1>Discover Our Cruise Packages</h1>
+
+                    <div className="cruises-hero-content cruises-hero-content--left">
+                        {/* Breadcrumb - Normal Flow */}
+                        <nav className="cruises-hero-breadcrumb">
+                            <LocaleLink href="/" className="cruises-bc-link">Home</LocaleLink>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="cruises-bc-sep"><polyline points="9 18 15 12 9 6" /></svg>
+                            <span className="cruises-bc-curr">Cruises</span>
+                        </nav>
+
+                        <div className="cruises-hero-eyebrow">Sail The Extraordinary</div>
+                        <h1>Discover Our<br />Cruise Packages</h1>
                         <p className="cruises-hero-subtitle">
-                            Experience the adventure of a lifetime with our handpicked cruise packages to pristine destinations
+                            Experience the adventure of a lifetime with our handpicked cruise packages to pristine destinations across Komodo and beyond.
                         </p>
-                        <div className="cruises-hero-badge">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                            </svg>
-                            Save up to 30% on Selected Packages
+                        <div className="cruises-hero-actions">
+                            <a href="#cruise-list" className="cruises-hero-btn cruises-hero-btn--primary">
+                                Explore Packages ↓
+                            </a>
+                            <div className="cruises-hero-badge">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                </svg>
+                                Save up to 30% on Selected Packages
+                            </div>
                         </div>
                     </div>
                 </div>
             )}
-            <div className={showHero ? "results-container results-container--hero" : "results-container"}>
+            <div id="cruise-list" className={showHero ? "results-container results-container--hero" : "results-container"}>
                 {loading ? (
                     <div className="results-layout">
                         <div className="results-main">
@@ -901,259 +902,178 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                     </div>
                 ) : (
                     <div className="results-layout-horizontal">
-                        {/* Main Content - Full Width */}
-                        <div className="results-main-full">
-                            {/* Horizontal Filters Bar - Sticky at top */}
-                            <div className="horizontal-filters-bar">
-                                <div className="filters-bar-inner">
-                                <div className="filters-left">
-                                    <div className="search-input-wrapper">
-                                        <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                        </svg>
-                                        <input 
-                                            type="text" 
-                                            className="search-input" 
-                                            placeholder="Search ships..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                        />
-                                        {searchQuery && (
-                                            <button 
-                                                className="search-clear-btn"
-                                                onClick={() => setSearchQuery("")}
-                                                title="Clear search"
-                                            >
-                                                ×
-                                            </button>
-                                        )}
-                                    </div>
+                        {/* Mobile sidebar toggle */}
+                        <button className="sidebar-mobile-toggle" onClick={() => setSidebarOpen(true)}>
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                            Filters &amp; Sort
+                        </button>
+
+                        {/* Mobile overlay */}
+                        {sidebarOpen && <div className="sidebar-mobile-overlay sidebar-overlay-open" onClick={() => setSidebarOpen(false)} />}
+
+                        {/* ===== LEFT SIDEBAR FILTERS ===== */}
+                        <aside className={`sidebar-filters${sidebarOpen ? " sidebar-open" : ""}`}>
+                            {/* Mobile close button */}
+                            <button className="sidebar-mobile-close" onClick={() => setSidebarOpen(false)}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+
+                            {/* Header */}
+                            <div className="sidebar-header">
+                                <div className="sidebar-header-title">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                                    Filters
                                 </div>
-                                <div className="filters-center">
-                                    {/* Filters Count Button */}
-                                    <div className="filter-dropdown-wrapper">
-                                        <button className="filter-btn filters-btn">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                                            </svg>
-                                            <span className="filter-label">Filters</span>
-                                            {(searchQuery || formDestinations.length > 0 || formDateFrom || formDuration !== 3 || formGuests !== 2) && (
-                                                <span className="filter-badge">
-                                                    {(searchQuery ? 1 : 0) + formDestinations.length + (formDateFrom ? 1 : 0) + (formDuration !== 3 ? 1 : 0) + (formGuests !== 2 ? 1 : 0)}
-                                                </span>
-                                            )}
-                                        </button>
-                                    </div>
+                                <button className="sidebar-clear-btn" onClick={() => {
+                                    setSearchQuery("");
+                                    setFormDestinations([]);
+                                    setFormDateFrom("");
+                                    setFormDateTo("");
+                                    setFormDuration(3);
+                                    setFormGuests(2);
+                                    handleModifySearch();
+                                }}>
+                                    Clear All
+                                </button>
+                            </div>
 
-                                    {/* Sort Dropdown */}
-                                    <div className="filter-dropdown-wrapper" ref={sortDropdownRef}>
-                                        <button className="filter-btn" onClick={() => setOpenSortBy(!openSortBy)}>
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
-                                            </svg>
-                                            Sort
-                                        </button>
-                                        {openSortBy && (
-                                            <div className="filter-dropdown-panel">
-                                                {SORT_OPTIONS.map(option => (
-                                                    <button
-                                                        key={option.value}
-                                                        className={`filter-option ${sortBy === option.value ? "active" : ""}`}
-                                                        onClick={() => { setSortBy(option.value); setOpenSortBy(false); }}
-                                                    >
-                                                        {option.label}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Departure Date Dropdown */}
-                                    <div className="filter-dropdown-wrapper" ref={dateDropdownRef}>
-                                        <button className="filter-btn" onClick={() => setShowDateDropdown(!showDateDropdown)}>
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <rect x="3" y="4" width="18" height="18" rx="2" />
-                                                <line x1="16" y1="2" x2="16" y2="6" />
-                                                <line x1="8" y1="2" x2="8" y2="6" />
-                                                <line x1="3" y1="10" x2="21" y2="10" />
-                                            </svg>
-                                            <span className="filter-label">Departure Date</span>
-                                            {formDateFrom && <span className="filter-badge">✓</span>}
-                                        </button>
-                                        {showDateDropdown && (
-                                            <div className="filter-dropdown-panel calendar-panel-dual">
-                                                {/* Month Navigation */}
-                                                <div className="calendar-dual-header">
-                                                    <button className="calendar-nav-btn" onClick={() => { if (calendarMonth === 0) { setCalendarMonth(11); setCalendarYear(calendarYear - 1); } else setCalendarMonth(calendarMonth - 1); }}>
-                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                                        </svg>
-                                                    </button>
-                                                    <div className="calendar-months-display">
-                                                        <span className="calendar-month-title">
-                                                            {monthNames[calendarMonth]} {calendarYear}
-                                                        </span>
-                                                        <span className="calendar-month-title">
-                                                            {monthNames[(calendarMonth + 1) % 12]} {calendarMonth === 11 ? calendarYear + 1 : calendarYear}
-                                                        </span>
-                                                    </div>
-                                                    <button className="calendar-nav-btn" onClick={() => { if (calendarMonth === 11) { setCalendarMonth(0); setCalendarYear(calendarYear + 1); } else setCalendarMonth(calendarMonth + 1); }}>
-                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                                
-                                                {/* Two Months Grid */}
-                                                <div className="calendar-dual-grid">
-                                                    {/* First Month */}
-                                                    <div className="calendar-month-container">
-                                                        <div className="calendar-weekdays-dual">
-                                                            {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(day => (
-                                                                <div key={day} className="calendar-weekday-dual">{day}</div>
-                                                            ))}
-                                                        </div>
-                                                        <div className="calendar-days-dual">
-                                                            {calendarDays.map((day, idx) => {
-                                                                if (!day) return <div key={idx} className="calendar-day-empty" />;
-                                                                const dateStr = toLocalDateStr(day);
-                                                                const today = new Date(); today.setHours(0, 0, 0, 0);
-                                                                const isPast = day < today;
-                                                                const isSelected = dateStr === formDateFrom || dateStr === formDateTo;
-                                                                const inRange = isDateInRange(day);
-                                                                return (
-                                                                    <button 
-                                                                        key={idx} 
-                                                                        className={`calendar-day-dual ${isPast ? "past" : ""} ${isSelected ? "selected" : ""} ${inRange && !isSelected ? "in-range" : ""}`} 
-                                                                        onClick={() => !isPast && handleCalendarDateClick(day)} 
-                                                                        disabled={isPast}
-                                                                    >
-                                                                        {day.getDate()}
-                                                                    </button>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Second Month */}
-                                                    <div className="calendar-month-container">
-                                                        <div className="calendar-weekdays-dual">
-                                                            {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(day => (
-                                                                <div key={`next-${day}`} className="calendar-weekday-dual">{day}</div>
-                                                            ))}
-                                                        </div>
-                                                        <div className="calendar-days-dual">
-                                                            {generateCalendarDays(
-                                                                calendarMonth === 11 ? calendarYear + 1 : calendarYear,
-                                                                (calendarMonth + 1) % 12
-                                                            ).map((day, idx) => {
-                                                                if (!day) return <div key={`next-${idx}`} className="calendar-day-empty" />;
-                                                                const dateStr = toLocalDateStr(day);
-                                                                const today = new Date(); today.setHours(0, 0, 0, 0);
-                                                                const isPast = day < today;
-                                                                const isSelected = dateStr === formDateFrom || dateStr === formDateTo;
-                                                                const inRange = isDateInRange(day);
-                                                                return (
-                                                                    <button 
-                                                                        key={`next-${idx}`} 
-                                                                        className={`calendar-day-dual ${isPast ? "past" : ""} ${isSelected ? "selected" : ""} ${inRange && !isSelected ? "in-range" : ""}`} 
-                                                                        onClick={() => !isPast && handleCalendarDateClick(day)} 
-                                                                        disabled={isPast}
-                                                                    >
-                                                                        {day.getDate()}
-                                                                    </button>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Destination Dropdown */}
-                                    <div className="filter-dropdown-wrapper" ref={destDropdownRef}>
-                                        <button className="filter-btn" onClick={() => setShowDestDropdown(!showDestDropdown)}>
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>
-                                            <span className="filter-label">Destination</span>
-                                            {formDestinations.length > 0 && <span className="filter-badge">{formDestinations.length}</span>}
-                                        </button>
-                                        {showDestDropdown && (
-                                            <div className="filter-dropdown-panel">
-                                                {DESTINATIONS.map(dest => (
-                                                    <label key={dest.id} className="filter-checkbox">
-                                                        <input type="checkbox" checked={formDestinations.includes(dest.id)} onChange={() => setFormDestinations(prev => prev.includes(dest.id) ? prev.filter(d => d !== dest.id) : [...prev, dest.id])} />
-                                                        <span>{dest.name}</span>
-                                                    </label>
-                                                ))}
-                                                <div className="filter-actions">
-                                                    <button className="btn-clear-filter" onClick={() => setFormDestinations([])}>Clear</button>
-                                                    <button className="btn-apply-filter" onClick={() => { setShowDestDropdown(false); handleModifySearch(); }}>Apply</button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Duration Dropdown */}
-                                    <div className="filter-dropdown-wrapper filter-dropdown-wrapper--right" ref={durationDropdownRef}>
-                                        <button className="filter-btn" onClick={() => setShowDurationDropdown(!showDurationDropdown)}>
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <circle cx="12" cy="12" r="10" />
-                                                <polyline points="12 6 12 12 16 14" />
-                                            </svg>
-                                            <span className="filter-label">Nights</span>
-                                            {formDuration !== 3 && <span className="filter-badge">{formDuration}</span>}
-                                        </button>
-                                        {showDurationDropdown && (
-                                            <div className="filter-dropdown-panel filter-dropdown-panel--right">
-                                                <div className="filter-counter">
-                                                    <span>Days</span>
-                                                    <div className="counter-controls">
-                                                        <button onClick={() => setFormDuration(Math.max(1, formDuration - 1))}>−</button>
-                                                        <span>{formDuration}</span>
-                                                        <button onClick={() => setFormDuration(Math.min(30, formDuration + 1))}>+</button>
-                                                    </div>
-                                                </div>
-                                                <div className="filter-actions">
-                                                    <button className="btn-clear-filter" onClick={() => setFormDuration(3)}>Reset</button>
-                                                    <button className="btn-apply-filter" onClick={() => { setShowDurationDropdown(false); handleModifySearch(); }}>Apply</button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Guests Dropdown */}
-                                    <div className="filter-dropdown-wrapper filter-dropdown-wrapper--right" ref={guestsDropdownRef}>
-                                        <button className="filter-btn" onClick={() => setShowGuestsDropdown(!showGuestsDropdown)}>
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                            </svg>
-                                            <span className="filter-label">Guests</span>
-                                            {formGuests !== 2 && <span className="filter-badge">{formGuests}</span>}
-                                        </button>
-                                        {showGuestsDropdown && (
-                                            <div className="filter-dropdown-panel filter-dropdown-panel--right">
-                                                <div className="filter-counter">
-                                                    <span>Guests</span>
-                                                    <div className="counter-controls">
-                                                        <button onClick={() => setFormGuests(Math.max(1, formGuests - 1))}>−</button>
-                                                        <span>{formGuests}</span>
-                                                        <button onClick={() => setFormGuests(Math.min(20, formGuests + 1))}>+</button>
-                                                    </div>
-                                                </div>
-                                                <div className="filter-actions">
-                                                    <button className="btn-clear-filter" onClick={() => setFormGuests(2)}>Reset</button>
-                                                    <button className="btn-apply-filter" onClick={() => { setShowGuestsDropdown(false); handleModifySearch(); }}>Apply</button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                            {/* Search */}
+                            <div className="sidebar-section">
+                                <div className="sidebar-section-title">Search</div>
+                                <div className="sidebar-search-wrapper">
+                                    <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <input
+                                        type="text"
+                                        className="sidebar-search-input"
+                                        placeholder="Search ships..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                    {searchQuery && (
+                                        <button className="search-clear-btn" onClick={() => setSearchQuery("")} title="Clear search">×</button>
+                                    )}
                                 </div>
                             </div>
+
+                            {/* Sort */}
+                            <div className="sidebar-section">
+                                <div className="sidebar-section-title">Sort By</div>
+                                <div className="sidebar-sort-options">
+                                    {SORT_OPTIONS.map(option => (
+                                        <button
+                                            key={option.value}
+                                            className={`sidebar-sort-option ${sortBy === option.value ? "active" : ""}`}
+                                            onClick={() => setSortBy(option.value)}
+                                        >
+                                            <span className="sort-radio" />
+                                            {option.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Departure Date */}
+                            <div className="sidebar-section">
+                                <div className="sidebar-section-title">Departure Date</div>
+                                <div className="sidebar-calendar">
+                                    <div className="calendar-dual-header">
+                                        <button className="calendar-nav-btn" onClick={() => { if (calendarMonth === 0) { setCalendarMonth(11); setCalendarYear(calendarYear - 1); } else setCalendarMonth(calendarMonth - 1); }}>
+                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                                        </button>
+                                        <span className="calendar-month-label">{monthNames[calendarMonth]} {calendarYear}</span>
+                                        <button className="calendar-nav-btn" onClick={() => { if (calendarMonth === 11) { setCalendarMonth(0); setCalendarYear(calendarYear + 1); } else setCalendarMonth(calendarMonth + 1); }}>
+                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                        </button>
+                                    </div>
+                                    <div className="calendar-weekdays-row">
+                                        {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(day => (
+                                            <div key={day} className="calendar-weekday">{day}</div>
+                                        ))}
+                                    </div>
+                                    <div className="calendar-days-grid">
+                                        {calendarDays.map((day, idx) => {
+                                            if (!day) return <div key={idx} className="calendar-day-empty" />;
+                                            const dateStr = toLocalDateStr(day);
+                                            const today = new Date(); today.setHours(0, 0, 0, 0);
+                                            const isPast = day < today;
+                                            const isSelected = dateStr === formDateFrom || dateStr === formDateTo;
+                                            const inRange = isDateInRange(day);
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    className={`calendar-day ${isPast ? "past" : ""} ${isSelected ? "selected" : ""} ${inRange && !isSelected ? "in-range" : ""}`}
+                                                    onClick={() => !isPast && handleCalendarDateClick(day)}
+                                                    disabled={isPast}
+                                                >
+                                                    {day.getDate()}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    {formDateFrom && (
+                                        <div className="sidebar-date-display">
+                                            <span>{formDateTo ? `${formatDateDisplay(formDateFrom)} – ${formatDateDisplay(formDateTo)}` : formatDateDisplay(formDateFrom)}</span>
+                                            <button className="sidebar-date-clear" onClick={() => { setFormDateFrom(""); setFormDateTo(""); handleModifySearch(); }}>×</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Destination */}
+                            <div className="sidebar-section">
+                                <div className="sidebar-section-title">Destination</div>
+                                <div className="sidebar-checkbox-list">
+                                    {DESTINATIONS.map(dest => (
+                                        <label key={dest.id} className="sidebar-checkbox-item">
+                                            <input
+                                                type="checkbox"
+                                                checked={formDestinations.includes(dest.id)}
+                                                onChange={() => setFormDestinations(prev => prev.includes(dest.id) ? prev.filter(d => d !== dest.id) : [...prev, dest.id])}
+                                            />
+                                            <span>{dest.name}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Nights */}
+                            <div className="sidebar-section">
+                                <div className="sidebar-section-title">Nights</div>
+                                <div className="sidebar-counter">
+                                    <span className="sidebar-counter-label">Days</span>
+                                    <div className="sidebar-counter-controls">
+                                        <button onClick={() => setFormDuration(Math.max(1, formDuration - 1))}>−</button>
+                                        <span>{formDuration}</span>
+                                        <button onClick={() => setFormDuration(Math.min(30, formDuration + 1))}>+</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Guests */}
+                            <div className="sidebar-section">
+                                <div className="sidebar-section-title">Guests</div>
+                                <div className="sidebar-counter">
+                                    <span className="sidebar-counter-label">Guests</span>
+                                    <div className="sidebar-counter-controls">
+                                        <button onClick={() => setFormGuests(Math.max(1, formGuests - 1))}>−</button>
+                                        <span>{formGuests}</span>
+                                        <button onClick={() => setFormGuests(Math.min(20, formGuests + 1))}>+</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Apply */}
+                            <div className="sidebar-section">
+                                <button className="sidebar-apply-btn" onClick={() => { handleModifySearch(); setSidebarOpen(false); }}>
+                                    Apply Filters
+                                </button>
+                            </div>
+                        </aside>
+
+                        {/* ===== RIGHT: MAIN CONTENT ===== */}
+                        <div className="results-main-full">
 
                             {/* Active Filters Pills */}
                             {(searchQuery || formDestinations.length > 0 || formDateFrom || formDuration !== 3 || formGuests !== 2) && (
@@ -1218,19 +1138,19 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                 </div>
                             )}
 
-                            {/* Back Button - only on results page */}
+                            {/* Breadcrumb - only on results page */}
                             {!showHero && (
-                                <div className="mb-4" style={{ marginTop: "1.5rem" }}>
-                                    <LocaleLink
-                                        href="/"
-                                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-[#12214a] transition-colors"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                <nav className="mb-4" style={{ marginTop: "1.5rem" }} aria-label="Breadcrumb">
+                                    <div className="flex items-center flex-wrap gap-2 text-[0.95rem] font-bold text-gray-500">
+                                        <LocaleLink href="/" className="text-[#12214a] hover:text-[#1a3a7a] hover:underline transition-colors">
+                                            Home
+                                        </LocaleLink>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-400">
+                                            <polyline points="9 18 15 12 9 6" />
                                         </svg>
-                                        Back to Homepage
-                                    </LocaleLink>
-                                </div>
+                                        <span className="text-gray-500">Cruises</span>
+                                    </div>
+                                </nav>
                             )}
 
                             {/* Title and Intro */}
@@ -1293,179 +1213,179 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                     {sortedShips.map((ship, shipIndex) => {
                                         const shipImages = getShipGalleryImages(ship);
                                         const currentImageIndex = shipImageIndices[ship.name] || 0;
-                                        
+
                                         return (
-                                        <div key={`${ship.name}-${shipIndex}`} className="ship-card-horizontal">
-                                            {/* Image Section with Carousel */}
-                                            <div className="ship-card-media">
-                                                <div className="ship-image-wrapper">
-                                                    <Image
-                                                        src={getDirectImageUrl(shipImages[currentImageIndex])}
-                                                        alt={ship.name}
-                                                        fill
-                                                        style={{ objectFit: "cover" }}
-                                                        unoptimized
-                                                        referrerPolicy="no-referrer"
-                                                    />
-                                                    {/* Carousel Navigation - Only show if multiple images */}
-                                                    {shipImages.length > 1 && (
-                                                        <>
-                                                            <button 
-                                                                className="carousel-nav carousel-prev" 
-                                                                onClick={(e) => handleShipPrevImage(ship.name, e)}
-                                                                aria-label="Previous image"
-                                                            >
-                                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                    <polyline points="15 18 9 12 15 6" />
-                                                                </svg>
-                                                            </button>
-                                                            <button 
-                                                                className="carousel-nav carousel-next" 
-                                                                onClick={(e) => handleShipNextImage(ship.name, e)}
-                                                                aria-label="Next image"
-                                                            >
-                                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                    <polyline points="9 6 15 12 9 18" />
-                                                                </svg>
-                                                            </button>
-                                                            {/* Image counter */}
-                                                            <div className="image-counter">
-                                                                {currentImageIndex + 1} / {shipImages.length}
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                    {/* Ship Name Badge */}
-                                                    <div className="ship-name-badge">
-                                                        <svg className="ship-badge-icon" viewBox="0 0 24 24" fill="currentColor">
-                                                            <circle cx="12" cy="12" r="10" />
-                                                        </svg>
-                                                        <span>{ship.name}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Content Section */}
-                                            <div className="ship-card-content">
-                                                {/* Nights Badge */}
-                                                <div className="cruise-duration">
-                                                    <svg className="duration-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                        <circle cx="12" cy="12" r="10" />
-                                                        <polyline points="12 6 12 12 16 14" />
-                                                    </svg>
-                                                    {formatTripNights(ship)} Nights
-                                                </div>
-
-                                                {/* Title */}
-                                                <h3 className="cruise-title">
-                                                    {ship.trip_name || ship.name}
-                                                </h3>
-
-                                                {/* Leaving From */}
-                                                <div className="leaving-from">
-                                                    <span className="leaving-label">Leaving from:</span>
-                                                    <span className="leaving-value">
-                                                        {ship.destinations?.split(',')[0] || 'Labuan Bajo'} (Port)
-                                                    </span>
-                                                    <span className="port-arrow">→</span>
-                                                    <span className="port-count">+{ship.destinations?.split(',').length || 2} ports</span>
-                                                </div>
-
-                                                {/* Rating */}
-                                                <div className="cruise-rating">
-                                                    <div className="rating-stars">
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b">
-                                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                                        </svg>
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b">
-                                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                                        </svg>
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b">
-                                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                                        </svg>
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b">
-                                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                                        </svg>
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#d1d5db">
-                                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                                        </svg>
-                                                    </div>
-                                                    <span className="review-count">{ship.availableCabins * 15} reviews</span>
-                                                </div>
-
-                                                {/* Departure Date */}
-                                                <div className="departure-date">
-                                                    <svg className="calendar-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                                        <line x1="16" y1="2" x2="16" y2="6"/>
-                                                        <line x1="8" y1="2" x2="8" y2="6"/>
-                                                        <line x1="3" y1="10" x2="21" y2="10"/>
-                                                    </svg>
-                                                    <span>
-                                                        {searchCriteria.dateFrom ? formatDateDisplay(searchCriteria.dateFrom) : 'Jan 6, 2027'}
-                                                    </span>
-                                                </div>
-
-                                                {/* Cruise Line Logo */}
-                                                <div className="cruise-line-logo">
-                                                    <svg className="ship-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                                        <path d="M3 15h18l-1.5 6h-15L3 15z" />
-                                                        <rect x="5" y="8" width="14" height="7" rx="1" />
-                                                        <path d="M8 8V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3" />
-                                                    </svg>
-                                                    <span>COMODOCRUISE</span>
-                                                </div>
-                                            </div>
-
-                                            {/* Price & Actions Section */}
-                                            <div className="ship-card-actions">
-                                                {/* Price Display */}
-                                                <div className="price-display">
-                                                    <div className="price-main">
-                                                        {ship.startFromPrice > 0 ? (
+                                            <div key={`${ship.name}-${shipIndex}`} className="ship-card-horizontal">
+                                                {/* Image Section with Carousel */}
+                                                <div className="ship-card-media">
+                                                    <div className="ship-image-wrapper">
+                                                        <Image
+                                                            src={getDirectImageUrl(shipImages[currentImageIndex])}
+                                                            alt={ship.name}
+                                                            fill
+                                                            style={{ objectFit: "cover" }}
+                                                            unoptimized
+                                                            referrerPolicy="no-referrer"
+                                                        />
+                                                        {/* Carousel Navigation - Only show if multiple images */}
+                                                        {shipImages.length > 1 && (
                                                             <>
-                                                                <sup className="price-currency">{getPriceSymbol(formatPrice(ship.startFromPrice))}</sup>
-                                                                <span className="price-amount">{getPriceVal(formatPrice(ship.startFromPrice))}</span>
-                                                                <sup className="price-pp">PP</sup>
-                                                                <button className="price-info-btn" aria-label="Price information">
-                                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                        <circle cx="12" cy="12" r="10"/>
-                                                                        <line x1="12" y1="16" x2="12" y2="12"/>
-                                                                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                                                <button
+                                                                    className="carousel-nav carousel-prev"
+                                                                    onClick={(e) => handleShipPrevImage(ship.name, e)}
+                                                                    aria-label="Previous image"
+                                                                >
+                                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                        <polyline points="15 18 9 12 15 6" />
                                                                     </svg>
                                                                 </button>
+                                                                <button
+                                                                    className="carousel-nav carousel-next"
+                                                                    onClick={(e) => handleShipNextImage(ship.name, e)}
+                                                                    aria-label="Next image"
+                                                                >
+                                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                        <polyline points="9 6 15 12 9 18" />
+                                                                    </svg>
+                                                                </button>
+                                                                {/* Image counter */}
+                                                                <div className="image-counter">
+                                                                    {currentImageIndex + 1} / {shipImages.length}
+                                                                </div>
                                                             </>
-                                                        ) : (
-                                                            <span className="price-contact">Contact for price</span>
+                                                        )}
+                                                        {/* Ship Name Badge */}
+                                                        <div className="ship-name-badge">
+                                                            <svg className="ship-badge-icon" viewBox="0 0 24 24" fill="currentColor">
+                                                                <circle cx="12" cy="12" r="10" />
+                                                            </svg>
+                                                            <span>{ship.name}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Content Section */}
+                                                <div className="ship-card-content">
+                                                    {/* Nights Badge */}
+                                                    <div className="cruise-duration">
+                                                        <svg className="duration-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                            <circle cx="12" cy="12" r="10" />
+                                                            <polyline points="12 6 12 12 16 14" />
+                                                        </svg>
+                                                        {formatTripNights(ship)} Nights
+                                                    </div>
+
+                                                    {/* Title */}
+                                                    <h3 className="cruise-title">
+                                                        {ship.trip_name || ship.name}
+                                                    </h3>
+
+                                                    {/* Leaving From */}
+                                                    <div className="leaving-from">
+                                                        <span className="leaving-label">Leaving from:</span>
+                                                        <span className="leaving-value">
+                                                            {ship.destinations?.split(',')[0] || 'Labuan Bajo'} (Port)
+                                                        </span>
+                                                        <span className="port-arrow">→</span>
+                                                        <span className="port-count">+{ship.destinations?.split(',').length || 2} ports</span>
+                                                    </div>
+
+                                                    {/* Rating */}
+                                                    <div className="cruise-rating">
+                                                        <div className="rating-stars">
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b">
+                                                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                                            </svg>
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b">
+                                                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                                            </svg>
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b">
+                                                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                                            </svg>
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b">
+                                                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                                            </svg>
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#d1d5db">
+                                                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                                            </svg>
+                                                        </div>
+                                                        <span className="review-count">{ship.availableCabins * 15} reviews</span>
+                                                    </div>
+
+                                                    {/* Departure Date */}
+                                                    <div className="departure-date">
+                                                        <svg className="calendar-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                                            <line x1="16" y1="2" x2="16" y2="6" />
+                                                            <line x1="8" y1="2" x2="8" y2="6" />
+                                                            <line x1="3" y1="10" x2="21" y2="10" />
+                                                        </svg>
+                                                        <span>
+                                                            {searchCriteria.dateFrom ? formatDateDisplay(searchCriteria.dateFrom) : 'Jan 6, 2027'}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Cruise Line Logo */}
+                                                    <div className="cruise-line-logo">
+                                                        <svg className="ship-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                            <path d="M3 15h18l-1.5 6h-15L3 15z" />
+                                                            <rect x="5" y="8" width="14" height="7" rx="1" />
+                                                            <path d="M8 8V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3" />
+                                                        </svg>
+                                                        <span>COMODOCRUISE</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Price & Actions Section */}
+                                                <div className="ship-card-actions">
+                                                    {/* Price Display */}
+                                                    <div className="price-display">
+                                                        <div className="price-main">
+                                                            {ship.startFromPrice > 0 ? (
+                                                                <>
+                                                                    <sup className="price-currency">{getPriceSymbol(formatPrice(ship.startFromPrice))}</sup>
+                                                                    <span className="price-amount">{getPriceVal(formatPrice(ship.startFromPrice))}</span>
+                                                                    <sup className="price-pp">PP</sup>
+                                                                    <button className="price-info-btn" aria-label="Price information">
+                                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                            <circle cx="12" cy="12" r="10" />
+                                                                            <line x1="12" y1="16" x2="12" y2="12" />
+                                                                            <line x1="12" y1="8" x2="12.01" y2="8" />
+                                                                        </svg>
+                                                                    </button>
+                                                                </>
+                                                            ) : (
+                                                                <span className="price-contact">Contact for price</span>
+                                                            )}
+                                                        </div>
+                                                        {ship.startFromPrice > 0 && (
+                                                            <div className="price-per-night">
+                                                                <span>${Math.round(ship.startFromPrice / (parseInt(ship.trip) || 3))}/night</span>
+                                                                <span className="cabin-type-dropdown">
+                                                                    • Inside Cabin
+                                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                        <polyline points="6 9 12 15 18 9" />
+                                                                    </svg>
+                                                                </span>
+                                                            </div>
                                                         )}
                                                     </div>
-                                                    {ship.startFromPrice > 0 && (
-                                                        <div className="price-per-night">
-                                                            <span>${Math.round(ship.startFromPrice / (parseInt(ship.trip) || 3))}/night</span>
-                                                            <span className="cabin-type-dropdown">
-                                                                • Inside Cabin
-                                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                    <polyline points="6 9 12 15 18 9"/>
-                                                                </svg>
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                </div>
 
-                                                {/* Brand Logo */}
-                                                <div className="brand-logo">
-                                                    <span style={{ fontWeight: 700, color: '#12214a', fontSize: '0.9rem', letterSpacing: '0.5px' }}>COMODOCRUISE</span>
-                                                </div>
+                                                    {/* Brand Logo */}
+                                                    <div className="brand-logo">
+                                                        <span style={{ fontWeight: 700, color: '#12214a', fontSize: '0.9rem', letterSpacing: '0.5px' }}>COMODOCRUISE</span>
+                                                    </div>
 
-                                                {/* Action Buttons */}
-                                                <button className="btn-view-deal" onClick={() => handleViewCabins(ship.name)}>
-                                                    View Cabins
-                                                </button>
-                                                <button className="btn-cruise-details" onClick={() => handleViewCabins(ship.name)}>
-                                                    Cruise Details
-                                                </button>
+                                                    {/* Action Buttons */}
+                                                    <button className="btn-view-deal" onClick={() => handleViewCabins(ship.name)}>
+                                                        View Cabins
+                                                    </button>
+                                                    <button className="btn-cruise-details" onClick={() => handleViewCabins(ship.name)}>
+                                                        Cruise Details
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
+                                        );
                                     })}
                                 </div>
                             )}
@@ -1503,246 +1423,246 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                             {getSelectedShip()?.cabins.map((cabin, idx) => {
                                                 const cabinImages = getCabinGalleryImages(cabin);
                                                 const currentCabinImageIndex = cabinImageIndices[cabin.cabin_id] || 0;
-                                                
+
                                                 return (
-                                                <div key={idx} className="cabin-card-wrapper">
-                                                    <div className="cabin-card-body">
-                                                        <div className="cabin-card-image" onClick={() => openCabinDetail(cabin)}>
-                                                            <Image
-                                                                src={getDirectImageUrl(cabinImages[currentCabinImageIndex])}
-                                                                alt={cabin.cabin_name}
-                                                                fill
-                                                                style={{ objectFit: "cover", cursor: "pointer" }}
-                                                                unoptimized
-                                                                referrerPolicy="no-referrer"
-                                                            />
-                                                            {/* Carousel Navigation - Only show if multiple images */}
-                                                            {cabinImages.length > 1 && (
-                                                                <>
-                                                                    <button 
-                                                                        className="carousel-nav carousel-prev" 
-                                                                        onClick={(e) => handleCabinPrevImage(cabin.cabin_id, e)}
-                                                                        aria-label="Previous cabin image"
-                                                                    >
-                                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                            <polyline points="15 18 9 12 15 6" />
-                                                                        </svg>
-                                                                    </button>
-                                                                    <button 
-                                                                        className="carousel-nav carousel-next" 
-                                                                        onClick={(e) => handleCabinNextImage(cabin.cabin_id, e)}
-                                                                        aria-label="Next cabin image"
-                                                                    >
-                                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                            <polyline points="9 6 15 12 9 18" />
-                                                                        </svg>
-                                                                    </button>
-                                                                    {/* Image counter */}
-                                                                    <div className="image-counter">
-                                                                        {currentCabinImageIndex + 1} / {cabinImages.length}
+                                                    <div key={idx} className="cabin-card-wrapper">
+                                                        <div className="cabin-card-body">
+                                                            <div className="cabin-card-image" onClick={() => openCabinDetail(cabin)}>
+                                                                <Image
+                                                                    src={getDirectImageUrl(cabinImages[currentCabinImageIndex])}
+                                                                    alt={cabin.cabin_name}
+                                                                    fill
+                                                                    style={{ objectFit: "cover", cursor: "pointer" }}
+                                                                    unoptimized
+                                                                    referrerPolicy="no-referrer"
+                                                                />
+                                                                {/* Carousel Navigation - Only show if multiple images */}
+                                                                {cabinImages.length > 1 && (
+                                                                    <>
+                                                                        <button
+                                                                            className="carousel-nav carousel-prev"
+                                                                            onClick={(e) => handleCabinPrevImage(cabin.cabin_id, e)}
+                                                                            aria-label="Previous cabin image"
+                                                                        >
+                                                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                                <polyline points="15 18 9 12 15 6" />
+                                                                            </svg>
+                                                                        </button>
+                                                                        <button
+                                                                            className="carousel-nav carousel-next"
+                                                                            onClick={(e) => handleCabinNextImage(cabin.cabin_id, e)}
+                                                                            aria-label="Next cabin image"
+                                                                        >
+                                                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                                <polyline points="9 6 15 12 9 18" />
+                                                                            </svg>
+                                                                        </button>
+                                                                        {/* Image counter */}
+                                                                        <div className="image-counter">
+                                                                            {currentCabinImageIndex + 1} / {cabinImages.length}
+                                                                        </div>
+                                                                    </>
+                                                                )}
+                                                            </div>
+
+                                                            <div className="cabin-card-content-top">
+                                                                <div className="cabin-header-row">
+                                                                    <h4 className="cabin-title">
+                                                                        {cabin.cabin_name} ({(() => {
+                                                                            const basePax = Math.max(1, (cabin.total_capacity || 2) - 1);
+                                                                            const extraPax = 1;
+                                                                            return `${basePax} pax + ${extraPax}`;
+                                                                        })()})
+                                                                    </h4>
+                                                                    <div className="cabin-capacity-badge">
+                                                                        {(() => {
+                                                                            const basePax = Math.max(1, (cabin.total_capacity || 2) - 1);
+                                                                            const extraPax = 1;
+                                                                            return (
+                                                                                <>
+                                                                                    {Array(basePax).fill(0).map((_, i) => (
+                                                                                        <svg key={`base-${i}`} width="16" height="16" viewBox="0 0 24 24" fill="#12214a">
+                                                                                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                                                                        </svg>
+                                                                                    ))}
+                                                                                    <span className="capacity-plus">+</span>
+                                                                                    {Array(extraPax).fill(0).map((_, i) => (
+                                                                                        <svg key={`extra-${i}`} width="14" height="14" viewBox="0 0 24 24" fill="#6b7280">
+                                                                                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                                                                        </svg>
+                                                                                    ))}
+                                                                                </>
+                                                                            );
+                                                                        })()}
                                                                     </div>
-                                                                </>
-                                                            )}
-                                                        </div>
-
-                                                        <div className="cabin-card-content-top">
-                                                            <div className="cabin-header-row">
-                                                                <h4 className="cabin-title">
-                                                                    {cabin.cabin_name} ({(() => {
-                                                                        const basePax = Math.max(1, (cabin.total_capacity || 2) - 1);
-                                                                        const extraPax = 1;
-                                                                        return `${basePax} pax + ${extraPax}`;
-                                                                    })()})
-                                                                </h4>
-                                                                <div className="cabin-capacity-badge">
-                                                                    {(() => {
-                                                                        const basePax = Math.max(1, (cabin.total_capacity || 2) - 1);
-                                                                        const extraPax = 1;
-                                                                        return (
-                                                                            <>
-                                                                                {Array(basePax).fill(0).map((_, i) => (
-                                                                                    <svg key={`base-${i}`} width="16" height="16" viewBox="0 0 24 24" fill="#12214a">
-                                                                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                                                                    </svg>
-                                                                                ))}
-                                                                                <span className="capacity-plus">+</span>
-                                                                                {Array(extraPax).fill(0).map((_, i) => (
-                                                                                    <svg key={`extra-${i}`} width="14" height="14" viewBox="0 0 24 24" fill="#6b7280">
-                                                                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                                                                    </svg>
-                                                                                ))}
-                                                                            </>
-                                                                        );
-                                                                    })()}
                                                                 </div>
-                                                            </div>
 
-                                                            <span className="cabin-type-badge">
-                                                                {cabin.facilities?.balcony ? "Room with balcony" : "Standard Room"}
-                                                            </span>
-
-                                                            <div className="cabin-info-row">
-                                                                <div className="cabin-info-item">
-                                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                                                        <line x1="9" y1="3" x2="9" y2="21"/>
-                                                                    </svg>
-                                                                    <span>Size: 36 sqm</span>
-                                                                </div>
-                                                                <div className="cabin-info-item">
-                                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                                                    </svg>
-                                                                    <span>Max Adults: {cabin.total_capacity || 2}</span>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="cabin-info-row">
-                                                                <div className="cabin-info-item">
-                                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                                                    </svg>
-                                                                    <span>Bed options: {cabin.facilities?.large_bed ? "Double Bed or 2 Beds" : "Double Bed or 2 Beds"}</span>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="cabin-extra-beds">
-                                                                <strong>Extra beds available:</strong>
-                                                                <ul>
-                                                                    <li>• Rollaway bed</li>
-                                                                    <li>• Crib</li>
-                                                                </ul>
-                                                            </div>
-
-                                                            <button className="cabin-show-more-btn" onClick={() => openCabinDetail(cabin)}>
-                                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                                                                    <circle cx="12" cy="12" r="10"/>
-                                                                    <line x1="12" y1="16" x2="12" y2="12"/>
-                                                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
-                                                                </svg>
-                                                                Show more
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="cabin-card-bottom">
-                                                        <div className="cabin-date-row">
-                                                            <span className="cabin-date-text">
-                                                                {(() => {
-                                                                    const cabinDates = getAvailableDatesForCabin(cabin);
-                                                                    const firstDate = cabinDates.length > 0 ? cabinDates[0] : null;
-                                                                    const selectedShip = getSelectedShip();
-                                                                    const tripDays = selectedShip ? (parseInt(selectedShip.trip, 10) || 3) : 3;
-                                                                    const tripNights = tripDays - 1;
-                                                                    const dateFrom = cabinSelectedDates[cabin.cabin_id]?.dateFrom || firstDate || searchCriteria.dateFrom;
-                                                                    let dateTo = cabinSelectedDates[cabin.cabin_id]?.dateTo;
-                                                                    if (!dateTo && dateFrom) {
-                                                                        const d = new Date(dateFrom);
-                                                                        d.setDate(d.getDate() + tripNights);
-                                                                        dateTo = toLocalDateStr(d);
-                                                                    }
-                                                                    return `${formatDateDisplay(dateFrom)} - ${formatDateDisplay(dateTo || dateFrom)}`;
-                                                                })()}
-                                                            </span>
-                                                            <span className="cabin-availability-badge">
-                                                                {getAvailableDatesForCabin(cabin).length} dates
-                                                            </span>
-                                                        </div>
-
-                                                        {/* More Dates Dropdown */}
-                                                        {openCabinDates === cabin.cabin_id && (
-                                                            <div className="more-dates-dropdown" ref={cabinDatesDropdownRef} onClick={e => e.stopPropagation()}>
-                                                                {(() => {
-                                                                    const cabinDates = getAvailableDatesForCabin(cabin);
-                                                                    const selectedShip = getSelectedShip();
-                                                                    const tripDays = selectedShip ? (parseInt(selectedShip.trip, 10) || 3) : 3;
-                                                                    const tripNights = tripDays - 1;
-                                                                    if (cabinDates.length === 0) {
-                                                                        return <div className="no-dates-msg">No available dates found</div>;
-                                                                    }
-                                                                    const maxDatesToShow = searchCriteria.dateFrom ? 5 : 10;
-                                                                    return cabinDates.slice(0, maxDatesToShow).map((date, dateIdx) => {
-                                                                        const startDate = new Date(date);
-                                                                        const endDate = new Date(date);
-                                                                        endDate.setDate(endDate.getDate() + tripNights);
-                                                                        const isReserved = isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, date);
-                                                                        return (
-                                                                            <div key={dateIdx} className={`trip-option-alt ${isReserved ? "trip-reserved" : ""}`}>
-                                                                                <div className="trip-alt-info">
-                                                                                    <span className="trip-alt-date">
-                                                                                        {startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                                                                                        {" - "}
-                                                                                        {endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                                                                                    </span>
-                                                                                    <span className="trip-alt-rooms">1 cabin</span>
-                                                                                </div>
-                                                                                {isReserved ? (
-                                                                                    <span className="trip-reserved-label">
-                                                                                        <span className="reserved-check-small">✓</span> RESERVED
-                                                                                    </span>
-                                                                                ) : (
-                                                                                    <button
-                                                                                        className="trip-select-action"
-                                                                                        style={{ background: "none", border: "none", cursor: "pointer" }}
-                                                                                        onClick={() => {
-                                                                                            const calculatedDateTo = toLocalDateStr(endDate);
-                                                                                            setCabinSelectedDates(prev => ({
-                                                                                                ...prev,
-                                                                                                [cabin.cabin_id]: { dateFrom: date, dateTo: calculatedDateTo },
-                                                                                            }));
-                                                                                            setOpenCabinDates(null);
-                                                                                        }}
-                                                                                    >
-                                                                                        SELECT
-                                                                                    </button>
-                                                                                )}
-                                                                            </div>
-                                                                        );
-                                                                    });
-                                                                })()}
-                                                                <button className="less-dates-toggle" onClick={() => setOpenCabinDates(null)}>
-                                                                    <span>LESS DATES</span>
-                                                                    <span className="toggle-arrow expanded">▼</span>
-                                                                </button>
-                                                            </div>
-                                                        )}
-
-                                                        <div className="cabin-footer">
-                                                            <div className="cabin-price-info">
-                                                                <span className="cabin-price-label">FROM</span>
-                                                                <span className="cabin-price-value">
-                                                                    {formatPrice(cabin.price || getSelectedShip()?.startFromPrice || 0)}
+                                                                <span className="cabin-type-badge">
+                                                                    {cabin.facilities?.balcony ? "Room with balcony" : "Standard Room"}
                                                                 </span>
-                                                                <span className="cabin-price-note">per person, per night</span>
-                                                            </div>
-                                                            <div className="cabin-action-buttons">
-                                                                <button
-                                                                    className="btn-more-dates"
-                                                                    onClick={() => setOpenCabinDates(openCabinDates === cabin.cabin_id ? null : cabin.cabin_id)}
-                                                                >
-                                                                    MORE DATES
-                                                                </button>
-                                                                <button
-                                                                    className={`btn-reserve-now ${isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, cabinSelectedDates[cabin.cabin_id]?.dateFrom || searchCriteria.dateFrom || toLocalDateStr(new Date())) ? "btn-reserved" : ""}`}
-                                                                    onClick={() => handleReserveNow(cabin, selectedShipForCabins!)}
-                                                                >
-                                                                    {isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, cabinSelectedDates[cabin.cabin_id]?.dateFrom || searchCriteria.dateFrom || toLocalDateStr(new Date())) ? (
-                                                                        <>
-                                                                            <span className="reserved-check">
-                                                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ verticalAlign: "text-bottom" }}>
-                                                                                    <polyline points="20 6 9 17 4 12" />
-                                                                                </svg>
-                                                                            </span>
-                                                                            RESERVED
-                                                                        </>
-                                                                    ) : "RESERVE NOW"}
+
+                                                                <div className="cabin-info-row">
+                                                                    <div className="cabin-info-item">
+                                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                                                            <line x1="9" y1="3" x2="9" y2="21" />
+                                                                        </svg>
+                                                                        <span>Size: 36 sqm</span>
+                                                                    </div>
+                                                                    <div className="cabin-info-item">
+                                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                                                        </svg>
+                                                                        <span>Max Adults: {cabin.total_capacity || 2}</span>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="cabin-info-row">
+                                                                    <div className="cabin-info-item">
+                                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                                                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                                                        </svg>
+                                                                        <span>Bed options: {cabin.facilities?.large_bed ? "Double Bed or 2 Beds" : "Double Bed or 2 Beds"}</span>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="cabin-extra-beds">
+                                                                    <strong>Extra beds available:</strong>
+                                                                    <ul>
+                                                                        <li>• Rollaway bed</li>
+                                                                        <li>• Crib</li>
+                                                                    </ul>
+                                                                </div>
+
+                                                                <button className="cabin-show-more-btn" onClick={() => openCabinDetail(cabin)}>
+                                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
+                                                                        <circle cx="12" cy="12" r="10" />
+                                                                        <line x1="12" y1="16" x2="12" y2="12" />
+                                                                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                                                                    </svg>
+                                                                    Show more
                                                                 </button>
                                                             </div>
                                                         </div>
+
+                                                        <div className="cabin-card-bottom">
+                                                            <div className="cabin-date-row">
+                                                                <span className="cabin-date-text">
+                                                                    {(() => {
+                                                                        const cabinDates = getAvailableDatesForCabin(cabin);
+                                                                        const firstDate = cabinDates.length > 0 ? cabinDates[0] : null;
+                                                                        const selectedShip = getSelectedShip();
+                                                                        const tripDays = selectedShip ? (parseInt(selectedShip.trip, 10) || 3) : 3;
+                                                                        const tripNights = tripDays - 1;
+                                                                        const dateFrom = cabinSelectedDates[cabin.cabin_id]?.dateFrom || firstDate || searchCriteria.dateFrom;
+                                                                        let dateTo = cabinSelectedDates[cabin.cabin_id]?.dateTo;
+                                                                        if (!dateTo && dateFrom) {
+                                                                            const d = new Date(dateFrom);
+                                                                            d.setDate(d.getDate() + tripNights);
+                                                                            dateTo = toLocalDateStr(d);
+                                                                        }
+                                                                        return `${formatDateDisplay(dateFrom)} - ${formatDateDisplay(dateTo || dateFrom)}`;
+                                                                    })()}
+                                                                </span>
+                                                                <span className="cabin-availability-badge">
+                                                                    {getAvailableDatesForCabin(cabin).length} dates
+                                                                </span>
+                                                            </div>
+
+                                                            {/* More Dates Dropdown */}
+                                                            {openCabinDates === cabin.cabin_id && (
+                                                                <div className="more-dates-dropdown" ref={cabinDatesDropdownRef} onClick={e => e.stopPropagation()}>
+                                                                    {(() => {
+                                                                        const cabinDates = getAvailableDatesForCabin(cabin);
+                                                                        const selectedShip = getSelectedShip();
+                                                                        const tripDays = selectedShip ? (parseInt(selectedShip.trip, 10) || 3) : 3;
+                                                                        const tripNights = tripDays - 1;
+                                                                        if (cabinDates.length === 0) {
+                                                                            return <div className="no-dates-msg">No available dates found</div>;
+                                                                        }
+                                                                        const maxDatesToShow = searchCriteria.dateFrom ? 5 : 10;
+                                                                        return cabinDates.slice(0, maxDatesToShow).map((date, dateIdx) => {
+                                                                            const startDate = new Date(date);
+                                                                            const endDate = new Date(date);
+                                                                            endDate.setDate(endDate.getDate() + tripNights);
+                                                                            const isReserved = isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, date);
+                                                                            return (
+                                                                                <div key={dateIdx} className={`trip-option-alt ${isReserved ? "trip-reserved" : ""}`}>
+                                                                                    <div className="trip-alt-info">
+                                                                                        <span className="trip-alt-date">
+                                                                                            {startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                                                                            {" - "}
+                                                                                            {endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                                                                        </span>
+                                                                                        <span className="trip-alt-rooms">1 cabin</span>
+                                                                                    </div>
+                                                                                    {isReserved ? (
+                                                                                        <span className="trip-reserved-label">
+                                                                                            <span className="reserved-check-small">✓</span> RESERVED
+                                                                                        </span>
+                                                                                    ) : (
+                                                                                        <button
+                                                                                            className="trip-select-action"
+                                                                                            style={{ background: "none", border: "none", cursor: "pointer" }}
+                                                                                            onClick={() => {
+                                                                                                const calculatedDateTo = toLocalDateStr(endDate);
+                                                                                                setCabinSelectedDates(prev => ({
+                                                                                                    ...prev,
+                                                                                                    [cabin.cabin_id]: { dateFrom: date, dateTo: calculatedDateTo },
+                                                                                                }));
+                                                                                                setOpenCabinDates(null);
+                                                                                            }}
+                                                                                        >
+                                                                                            SELECT
+                                                                                        </button>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        });
+                                                                    })()}
+                                                                    <button className="less-dates-toggle" onClick={() => setOpenCabinDates(null)}>
+                                                                        <span>LESS DATES</span>
+                                                                        <span className="toggle-arrow expanded">▼</span>
+                                                                    </button>
+                                                                </div>
+                                                            )}
+
+                                                            <div className="cabin-footer">
+                                                                <div className="cabin-price-info">
+                                                                    <span className="cabin-price-label">FROM</span>
+                                                                    <span className="cabin-price-value">
+                                                                        {formatPrice(cabin.price || getSelectedShip()?.startFromPrice || 0)}
+                                                                    </span>
+                                                                    <span className="cabin-price-note">per person, per night</span>
+                                                                </div>
+                                                                <div className="cabin-action-buttons">
+                                                                    <button
+                                                                        className="btn-more-dates"
+                                                                        onClick={() => setOpenCabinDates(openCabinDates === cabin.cabin_id ? null : cabin.cabin_id)}
+                                                                    >
+                                                                        MORE DATES
+                                                                    </button>
+                                                                    <button
+                                                                        className={`btn-reserve-now ${isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, cabinSelectedDates[cabin.cabin_id]?.dateFrom || searchCriteria.dateFrom || toLocalDateStr(new Date())) ? "btn-reserved" : ""}`}
+                                                                        onClick={() => handleReserveNow(cabin, selectedShipForCabins!)}
+                                                                    >
+                                                                        {isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, cabinSelectedDates[cabin.cabin_id]?.dateFrom || searchCriteria.dateFrom || toLocalDateStr(new Date())) ? (
+                                                                            <>
+                                                                                <span className="reserved-check">
+                                                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ verticalAlign: "text-bottom" }}>
+                                                                                        <polyline points="20 6 9 17 4 12" />
+                                                                                    </svg>
+                                                                                </span>
+                                                                                RESERVED
+                                                                            </>
+                                                                        ) : "RESERVE NOW"}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            );
+                                                );
                                             })}
                                         </div>
                                     </div>

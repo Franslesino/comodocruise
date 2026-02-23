@@ -99,7 +99,11 @@ const experiences: Experience[] = [
     },
 ];
 
-export default function ExperienceSection() {
+interface ExperienceSectionProps {
+    embedded?: boolean;
+}
+
+export default function ExperienceSection({ embedded = false }: ExperienceSectionProps) {
     const { t } = useTranslation();
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
@@ -139,17 +143,23 @@ export default function ExperienceSection() {
                 {/* Header */}
                 <div className="flex items-end justify-between mb-6">
                     <div>
-                        <LocaleLink
-                            href="/activities"
-                            className="group inline-flex items-center gap-2"
-                        >
-                            <h2 className="font-canto text-2xl md:text-3xl text-neutral-900 group-hover:text-neutral-700 transition-colors">
+                        {embedded ? (
+                            <h2 className="font-canto text-2xl md:text-3xl text-neutral-900">
                                 {t("experience.title")}
                             </h2>
-                            <svg className="w-5 h-5 text-neutral-900 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </LocaleLink>
+                        ) : (
+                            <LocaleLink
+                                href="/activities"
+                                className="group inline-flex items-center gap-2"
+                            >
+                                <h2 className="font-canto text-2xl md:text-3xl text-neutral-900 group-hover:text-neutral-700 transition-colors">
+                                    {t("experience.title")}
+                                </h2>
+                                <svg className="w-5 h-5 text-neutral-900 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </LocaleLink>
+                        )}
                         <p className="font-avenir text-neutral-500 text-sm mt-1 max-w-xl">
                             {t("experience.subtitle")}
                         </p>
@@ -188,7 +198,7 @@ export default function ExperienceSection() {
                         {experiences.map((exp) => (
                             <LocaleLink
                                 key={exp.id}
-                                href={`/activities/${exp.id}`}
+                                href={`/activities#${exp.id}`}
                                 data-exp-card
                                 className="group flex-shrink-0 w-[260px] sm:w-[270px]"
                             >
@@ -238,20 +248,22 @@ export default function ExperienceSection() {
                             </LocaleLink>
                         ))}
 
-                        {/* "View All" card */}
-                        <LocaleLink
-                            href="/activities"
-                            className="group flex-shrink-0 w-[200px] sm:w-[210px] flex flex-col items-center justify-center"
-                        >
-                            <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center mb-4 group-hover:bg-teal-100 transition-colors">
-                                <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                </svg>
-                            </div>
-                            <span className="font-semibold text-sm text-neutral-900 group-hover:text-teal-700 transition-colors">
-                                {t("experience.viewAll")}
-                            </span>
-                        </LocaleLink>
+                        {/* "View All" card — hidden when embedded inside the activities page */}
+                        {!embedded && (
+                            <LocaleLink
+                                href="/activities"
+                                className="group flex-shrink-0 w-[200px] sm:w-[210px] flex flex-col items-center justify-center"
+                            >
+                                <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center mb-4 group-hover:bg-teal-100 transition-colors">
+                                    <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                    </svg>
+                                </div>
+                                <span className="font-semibold text-sm text-neutral-900 group-hover:text-teal-700 transition-colors">
+                                    {t("experience.viewAll")}
+                                </span>
+                            </LocaleLink>
+                        )}
                     </div>
                 </div>
             </div>

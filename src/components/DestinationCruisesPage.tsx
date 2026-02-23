@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import LocaleLink from "./LocaleLink";
 import { fetchShips, getDestinations, formatPrice } from "@/lib/api";
+import { getLocaleFromPathname, localizePath } from "@/lib/i18n";
 import type { ParsedShip } from "@/types/api";
 import { ClockIcon, UsersIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/24/solid";
@@ -79,8 +80,8 @@ function getMeta(slug: string, apiDestName?: string) {
 type SortKey = "recommended" | "price-asc" | "price-desc" | "duration-asc";
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
     { value: "recommended", label: "Recommended" },
-    { value: "price-asc",   label: "Price: Low to High" },
-    { value: "price-desc",  label: "Price: High to Low" },
+    { value: "price-asc", label: "Price: Low to High" },
+    { value: "price-desc", label: "Price: High to Low" },
     { value: "duration-asc", label: "Shortest Duration" },
 ];
 
@@ -88,7 +89,10 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
 interface Props { slug: string }
 
 export default function DestinationCruisesPage({ slug }: Props) {
-    const router = useRouter();
+
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
+    const aboutHref = localizePath(`/destinations/${slug}`, locale);
     const [ships, setShips] = useState<ParsedShip[]>([]);
     const [destName, setDestName] = useState<string>("");
     const [loading, setLoading] = useState(true);
@@ -127,7 +131,7 @@ export default function DestinationCruisesPage({ slug }: Props) {
     const sorted = useMemo(() => {
         const arr = [...ships];
         switch (sort) {
-            case "price-asc":  return arr.sort((a, b) => (a.lowestPrice || 0) - (b.lowestPrice || 0));
+            case "price-asc": return arr.sort((a, b) => (a.lowestPrice || 0) - (b.lowestPrice || 0));
             case "price-desc": return arr.sort((a, b) => (b.lowestPrice || 0) - (a.lowestPrice || 0));
             case "duration-asc": return arr.sort((a, b) => parseInt(a.tripDuration || "0") - parseInt(b.tripDuration || "0"));
             default: return arr;
@@ -151,12 +155,15 @@ export default function DestinationCruisesPage({ slug }: Props) {
                 </div>
 
                 <div className="dest-hero-content">
-                    <button className="dest-back-btn" onClick={() => router.back()}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <polyline points="15 18 9 12 15 6"/>
-                        </svg>
-                        Back
-                    </button>
+                    <nav className="dest-breadcrumb" aria-label="Breadcrumb">
+                        <LocaleLink href={localizePath("/", locale)} className="dest-bc-link">Home</LocaleLink>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="dest-bc-sep"><polyline points="9 18 15 12 9 6" /></svg>
+                        <LocaleLink href={localizePath("/destinations", locale)} className="dest-bc-link">Destinations</LocaleLink>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="dest-bc-sep"><polyline points="9 18 15 12 9 6" /></svg>
+                        <LocaleLink href={aboutHref} className="dest-bc-link">{meta.displayName}</LocaleLink>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="dest-bc-sep"><polyline points="9 18 15 12 9 6" /></svg>
+                        <span className="dest-bc-current">Cruises</span>
+                    </nav>
 
                     <div className="dest-hero-text">
                         <div className="dest-hero-location">
@@ -206,7 +213,7 @@ export default function DestinationCruisesPage({ slug }: Props) {
                 {/* Loading skeleton */}
                 {loading && (
                     <div className="dest-grid">
-                        {[1,2,3,4,5,6].map(i => (
+                        {[1, 2, 3, 4, 5, 6].map(i => (
                             <div key={i} className="dest-skeleton" />
                         ))}
                     </div>

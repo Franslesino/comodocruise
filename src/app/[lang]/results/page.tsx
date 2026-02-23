@@ -34,7 +34,7 @@ export default function ResultsPage() {
                 </div>
             }
         >
-            <SearchResults />
+            <SearchResults showHero />
         </Suspense>
     );
 }

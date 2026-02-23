@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback, Fragment } from "react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import LocaleLink from "./LocaleLink";
+import { getLocaleFromPathname, localizePath } from "@/lib/i18n";
 import {
     fetchShips,
     fetchAllCabins,
@@ -138,6 +140,9 @@ export default function ShipDetail({ slug }: { slug: string }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
+    const pathname = usePathname();
+    const locale = getLocaleFromPathname(pathname);
+
     /* gallery state */
     const [galleryIdx, setGalleryIdx] = useState(0);
     const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -156,7 +161,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
     const [cabinSelectedDates, setCabinSelectedDates] = useState<Record<string, { dateFrom: string; dateTo: string }>>({});
     const [shipAvailableDates, setShipAvailableDates] = useState<string[]>([]);
     const cabinDatesDropdownRef = useRef<HTMLDivElement>(null);
-    
+
     /* date range picker state */
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [selectedDateRange, setSelectedDateRange] = useState<{ dateFrom: string; dateTo: string } | null>(null);
@@ -256,8 +261,8 @@ export default function ShipDetail({ slug }: { slug: string }) {
             if (Object.keys(newCache).length > 0) {
                 setCabinImagesCache(prev => ({ ...prev, ...newCache }));
             }
-        }).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        }).catch(() => { });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [cabins]);
 
     /* intersection observer for sticky nav highlight */
@@ -306,7 +311,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
         if (date < today) return;
 
         const dateStr = toLocalDateStr(date);
-        
+
         // Check if date is available
         if (!shipAvailableDates.includes(dateStr)) return;
 
@@ -432,8 +437,8 @@ export default function ShipDetail({ slug }: { slug: string }) {
     const galleryImages =
         ship
             ? [ship.imageMain, ...ship.images].filter(
-                  (url, i, arr) => url && isValidImageUrl(url) && arr.indexOf(url) === i
-              )
+                (url, i, arr) => url && isValidImageUrl(url) && arr.indexOf(url) === i
+            )
             : [];
 
     const prevGallery = () => setGalleryIdx((p) => (p - 1 + galleryImages.length) % galleryImages.length);
@@ -490,27 +495,16 @@ export default function ShipDetail({ slug }: { slug: string }) {
 
     return (
         <div className="sd-page">
-            {/* Back Button */}
-            <div className="sd-back-button-container">
-                <LocaleLink 
-                    href="/" 
-                    className="sd-back-button"
-                >
-                    <svg 
-                        width="20" 
-                        height="20" 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2"
-                        strokeLinecap="round" 
-                        strokeLinejoin="round"
-                    >
-                        <path d="M19 12H5M12 19l-7-7 7-7"/>
-                    </svg>
-                    <span>Back to Home</span>
-                </LocaleLink>
-            </div>
+            {/* Breadcrumb */}
+            <nav className="sd-breadcrumb-bar" aria-label="Breadcrumb">
+                <div className="sd-breadcrumb-bar-inner">
+                    <LocaleLink href={localizePath("/", locale)} className="sd-bc-bar-link">Home</LocaleLink>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="sd-bc-bar-sep"><polyline points="9 18 15 12 9 6" /></svg>
+                    <LocaleLink href={localizePath("/cruises", locale)} className="sd-bc-bar-link">Cruises</LocaleLink>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="sd-bc-bar-sep"><polyline points="9 18 15 12 9 6" /></svg>
+                    <span className="sd-bc-bar-current">{ship.name}</span>
+                </div>
+            </nav>
 
             {/* ══════════ HERO SECTION - Similar to Halong Bay Tours ══════════ */}
             <section className="sd-hero-new">
@@ -528,7 +522,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                     priority
                                 />
                             )}
-                            
+
                             {/* Navigation arrows */}
                             {galleryImages.length > 1 && (
                                 <>
@@ -540,16 +534,16 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                     </button>
                                 </>
                             )}
-                            
+
                             {/* Photo count badge */}
                             <div className="sd-photo-badge">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
                                 </svg>
                                 +{galleryImages.length} photos
                             </div>
                         </div>
-                        
+
                         {/* Thumbnail Grid */}
                         <div className="sd-thumbnail-grid">
                             {galleryImages.slice(0, 4).map((url, i) => (
@@ -575,17 +569,17 @@ export default function ShipDetail({ slug }: { slug: string }) {
                         </div>
 
                         <h1 className="sd-ship-title">{ship.name}</h1>
-                        
+
                         <div className="sd-ship-meta">
                             <span className="sd-meta-item">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                    <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                                    <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
                                 </svg>
                                 {ship.tripDuration} Days / {Math.max(1, parseInt(ship.tripDuration) - 1)} Nights
                             </span>
                             <span className="sd-meta-item">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008V7.5z"/>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008V7.5z" />
                                 </svg>
                                 {ship.cabinCount} Cabins
                             </span>
@@ -596,7 +590,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                             {destList.slice(0, 3).map((dest, i) => (
                                 <span key={i} className="sd-feature-tag">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+                                        <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
                                     </svg>
                                     {dest}
                                 </span>
@@ -699,7 +693,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                     <h2 className="sd-section-heading">About {ship.name}</h2>
                     <div className="sd-overview-content-new">
                         <p className="sd-description-text">{ship.description}</p>
-                        
+
                         {/* What we love most */}
                         <div className="sd-love-section">
                             <h3 className="sd-love-title">5 things that we love most about {ship.name}</h3>
@@ -723,49 +717,49 @@ export default function ShipDetail({ slug }: { slug: string }) {
                         <div className="sd-booking-summary">
                             <div className="sd-booking-summary-item">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                    <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                                    <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
                                 </svg>
                                 <span>Cruise Duration: {ship.tripDuration} Days/{Math.max(1, parseInt(ship.tripDuration) - 1)} Night</span>
                             </div>
                             <div className="sd-booking-summary-item" style={{ position: 'relative' }}>
-                                <button 
+                                <button
                                     className="sd-date-picker-btn"
                                     onClick={() => setShowDatePicker(!showDatePicker)}
                                 >
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                                     </svg>
                                     <span>
-                                        {selectedDateRange 
+                                        {selectedDateRange
                                             ? `${new Date(selectedDateRange.dateFrom).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(selectedDateRange.dateTo).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
                                             : 'Select dates'
                                         }
                                     </span>
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginLeft: '0.5rem' }}>
-                                        <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </button>
-                                
+
                                 {showDatePicker && (
                                     <div className="sd-date-picker-dropdown" ref={datePickerRef}>
                                         <div className="sd-date-picker-header">
                                             <h4>Select travel dates</h4>
-                                            <button 
+                                            <button
                                                 className="sd-date-picker-close"
                                                 onClick={() => setShowDatePicker(false)}
                                             >
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                                    <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
                                                 </svg>
                                             </button>
                                         </div>
-                                        
+
                                         {selectedDateRange && (
                                             <div className="sd-date-picker-info">
-                                                <p>Selected: {new Date(selectedDateRange.dateFrom).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} 
-                                                {selectedDateRange.dateTo && ` - ${new Date(selectedDateRange.dateTo).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+                                                <p>Selected: {new Date(selectedDateRange.dateFrom).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                    {selectedDateRange.dateTo && ` - ${new Date(selectedDateRange.dateTo).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
                                                 </p>
-                                                <button 
+                                                <button
                                                     className="sd-date-clear-btn"
                                                     onClick={() => setSelectedDateRange(null)}
                                                 >
@@ -775,7 +769,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                         )}
 
                                         <div className="sd-calendar-nav">
-                                            <button 
+                                            <button
                                                 className="sd-calendar-nav-btn"
                                                 onClick={() => {
                                                     if (calendarMonth === 0) {
@@ -787,10 +781,10 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                 }}
                                             >
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                                    <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                                                 </svg>
                                             </button>
-                                            <button 
+                                            <button
                                                 className="sd-calendar-nav-btn"
                                                 onClick={() => {
                                                     if (calendarMonth === 11) {
@@ -802,7 +796,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                 }}
                                             >
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                                    <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
                                                 </svg>
                                             </button>
                                         </div>
@@ -823,14 +817,14 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                         if (!date) {
                                                             return <div key={`empty-${idx}`} className="sd-calendar-day-empty" />;
                                                         }
-                                                        
+
                                                         const today = new Date();
                                                         today.setHours(0, 0, 0, 0);
                                                         const isPast = date < today;
                                                         const available = isDateAvailable(date);
                                                         const selected = isDateSelected(date);
                                                         const inRange = isDateInRange(date);
-                                                        
+
                                                         return (
                                                             <button
                                                                 key={idx}
@@ -864,14 +858,14 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                                 if (!date) {
                                                                     return <div key={`empty-${idx}`} className="sd-calendar-day-empty" />;
                                                                 }
-                                                                
+
                                                                 const today = new Date();
                                                                 today.setHours(0, 0, 0, 0);
                                                                 const isPast = date < today;
                                                                 const available = isDateAvailable(date);
                                                                 const selected = isDateSelected(date);
                                                                 const inRange = isDateInRange(date);
-                                                                
+
                                                                 return (
                                                                     <button
                                                                         key={idx}
@@ -908,7 +902,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                             </div>
                         </div>
                     </div>
-                    
+
                     {allCabinsForDisplay.length === 0 ? (
                         <div className="sd-no-data">
                             <p>Cabin information is not yet available. Please contact us for details.</p>
@@ -931,7 +925,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                         const cabinAvailDates = getAvailableDatesForCabin(cabin);
                                         const isOpenDates = openCabinDates === cabin.cabin_id;
                                         const tripNights = Math.max(1, parseInt(ship.tripDuration) - 1);
-                                        
+
                                         return (
                                             <Fragment key={cabin.cabin_id || idx}>
                                                 <tr className="sd-cabin-row">
@@ -954,7 +948,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                                             aria-label="Previous image"
                                                                         >
                                                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                                                                <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                                                                                <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                                                                             </svg>
                                                                         </button>
                                                                         <button
@@ -963,7 +957,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                                             aria-label="Next image"
                                                                         >
                                                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                                                                <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                                                                                <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
                                                                             </svg>
                                                                         </button>
                                                                         <div className="sd-cabin-carousel-dots">
@@ -990,196 +984,196 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                     <td className="sd-cabin-info-cell">
                                                         <div className="sd-cabin-info-content">
                                                             <h4 className="sd-cabin-name">{cabin.cabin_name}</h4>
-                                                        {cabin.facilities?.balcony && (
-                                                            <span className="sd-cabin-badge">
-                                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                                                    <path d="M3 21h18M5 21V9l7-4 7 4v12M9 21v-4h6v4"/>
-                                                                </svg>
-                                                                Room with balcony
-                                                            </span>
-                                                        )}
-                                                        <div className="sd-cabin-details">
-                                                            <div className="sd-detail-item">
-                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                                                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                                                                </svg>
-                                                                <span><strong>Size:</strong> 36 sqm</span>
-                                                            </div>
-                                                            <div className="sd-detail-item">
-                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                                                </svg>
-                                                                <span><strong>Max Adults:</strong> {cabin.total_capacity || 2}</span>
-                                                            </div>
-                                                            <div className="sd-detail-item">
-                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                                                    <rect x="3" y="11" width="18" height="11" rx="2" />
-                                                                </svg>
-                                                                <span><strong>Bed options:</strong> {cabin.facilities?.large_bed ? "King Bed or 2 Twins" : "Double Bed or 2 Beds"}</span>
-                                                            </div>
-                                                            <div className="sd-detail-item">
-                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                                                    <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
-                                                                </svg>
-                                                                <span><strong>Extra beds available:</strong></span>
-                                                            </div>
-                                                            <ul className="sd-extra-beds-list">
-                                                                <li>● Rollaway bed</li>
-                                                                <li>● Crib</li>
-                                                            </ul>
-                                                        </div>
-                                                        <button 
-                                                            className="sd-show-more-link"
-                                                            onClick={() => openCabinDetail(cabin)}
-                                                        >
-                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                                                <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
-                                                            </svg>
-                                                            Show more
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <td className="sd-max-cell">
-                                                    <div className="sd-guest-icons">
-                                                        {Array(cabin.total_capacity || 2).fill(0).map((_, i) => (
-                                                            <svg key={i} width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                                            </svg>
-                                                        ))}
-                                                    </div>
-                                                    <div className="sd-plus-icon">+</div>
-                                                </td>
-                                                <td className="sd-price-cell">
-                                                    <div className="sd-price-info-new">
-                                                        <div className="sd-choose-dates-notice">
-                                                            {cabinAvailDates.length > 0 ? `${cabinAvailDates.length} dates available` : 'No dates available'}
-                                                        </div>
-                                                        <span className="sd-price-amount-new">{formatPrice(cabin.price || ship.lowestPrice || 0)}</span>
-                                                        <span className="sd-price-per-night">per person / night</span>
-                                                        <button
-                                                            className="sd-more-dates-btn"
-                                                            onClick={() => setOpenCabinDates(isOpenDates ? null : cabin.cabin_id)}
-                                                        >
-                                                            {isOpenDates ? 'LESS DATES' : 'MORE DATES'}
-                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ transform: isOpenDates ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
-                                                                <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
-                                                            </svg>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            
-                                            {/* Available Dates Row */}
-                                            {isOpenDates && (
-                                                <tr className="sd-dates-row">
-                                                    <td colSpan={4} className="sd-dates-cell">
-                                                        <div className="sd-dates-container" ref={cabinDatesDropdownRef}>
-                                                            {cabinAvailDates.length === 0 ? (
-                                                                <div className="sd-no-dates">No available dates found</div>
-                                                            ) : (
-                                                                <div className="sd-dates-list">
-                                                                    {cabinAvailDates.slice(0, 10).map((date, dateIdx) => {
-                                                                        const startDate = new Date(date);
-                                                                        const endDate = new Date(date);
-                                                                        endDate.setDate(endDate.getDate() + tripNights);
-                                                                        
-                                                                        // Get day of week
-                                                                        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                                                                        const departureDay = dayNames[startDate.getDay()];
-                                                                        
-                                                                        // Calculate if date is within 30 days (urgency indicator)
-                                                                        const today = new Date();
-                                                                        const daysUntilDeparture = Math.floor((startDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                                                                        const isUrgent = daysUntilDeparture > 0 && daysUntilDeparture <= 30;
-                                                                        
-                                                                        return (
-                                                                            <div key={dateIdx} className="sd-date-option-detailed">
-                                                                                <div className="sd-date-option-left">
-                                                                                    <div className="sd-date-departure-info">
-                                                                                        <span className="sd-date-day">{departureDay}</span>
-                                                                                        <span className="sd-date-range-detailed">
-                                                                                            {startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                                                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ margin: '0 0.5rem' }}>
-                                                                                                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                            </svg>
-                                                                                            {endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                                                                                        </span>
-                                                                                        <span className="sd-date-duration">
-                                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginRight: '4px' }}>
-                                                                                                <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
-                                                                                            </svg>
-                                                                                            {ship.tripDuration} Days / {tripNights} Nights
-                                                                                        </span>
-                                                                                    </div>
-                                                                                    <div className="sd-date-cabin-details">
-                                                                                        <span className="sd-date-cabin-info">
-                                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginRight: '4px' }}>
-                                                                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                                                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                                                                            </svg>
-                                                                                            {cabin.cabin_name} • Max {cabin.total_capacity} guests
-                                                                                        </span>
-                                                                                        <span className="sd-date-cabin-facilities">
-                                                                                            {cabin.facilities.balcony && (
-                                                                                                <span className="sd-facility-badge">
-                                                                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                                                                                        <path d="M12 2L2 7v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7L12 2zm0 2.18l8 3.6V17c0 .55-.45 1-1 1H5c-.55 0-1-.45-1-1V7.78l8-3.6z"/>
-                                                                                                    </svg>   
-                                                                                                    Balcony
-                                                                                                </span>
-                                                                                            )}
-                                                                                            {cabin.facilities.seaview && (
-                                                                                                <span className="sd-facility-badge">
-                                                                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                                                                                        <path d="M12 9c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3m0-2c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z"/>
-                                                                                                    </svg>
-                                                                                                    Sea View
-                                                                                                </span>
-                                                                                            )}
-                                                                                            {cabin.facilities.large_bed && (
-                                                                                                <span className="sd-facility-badge">
-                                                                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                                                                                        <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/>
-                                                                                                    </svg>
-                                                                                                    King Bed
-                                                                                                </span>
-                                                                                            )}
-                                                                                        </span>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="sd-date-option-right">
-                                                                                    <div className="sd-date-price-info">
-                                                                                        <span className="sd-date-price-label">Total from</span>
-                                                                                        <span className="sd-date-price-value">{formatPrice(cabin.price || ship.lowestPrice || 0)}</span>
-                                                                                        <span className="sd-date-price-note">per person</span>
-                                                                                    </div>
-                                                                                    {isUrgent && (
-                                                                                        <span className="sd-date-urgency-badge">
-                                                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: '4px' }}>
-                                                                                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                                                                                            </svg>
-                                                                                            Departing soon
-                                                                                        </span>
-                                                                                    )}
-                                                                                    <LocaleLink
-                                                                                        href={`/results?ship=${encodeURIComponent(ship.name)}&dateFrom=${date}`}
-                                                                                        className="sd-select-btn-detailed"
-                                                                                    >
-                                                                                        SELECT DATES
-                                                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginLeft: '6px' }}>
-                                                                                            <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
-                                                                                        </svg>
-                                                                                    </LocaleLink>
-                                                                                </div>
-                                                                            </div>
-                                                                        );
-                                                                    })}
-                                                                </div>
+                                                            {cabin.facilities?.balcony && (
+                                                                <span className="sd-cabin-badge">
+                                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                                                        <path d="M3 21h18M5 21V9l7-4 7 4v12M9 21v-4h6v4" />
+                                                                    </svg>
+                                                                    Room with balcony
+                                                                </span>
                                                             )}
+                                                            <div className="sd-cabin-details">
+                                                                <div className="sd-detail-item">
+                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                                                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                                                                    </svg>
+                                                                    <span><strong>Size:</strong> 36 sqm</span>
+                                                                </div>
+                                                                <div className="sd-detail-item">
+                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                                                    </svg>
+                                                                    <span><strong>Max Adults:</strong> {cabin.total_capacity || 2}</span>
+                                                                </div>
+                                                                <div className="sd-detail-item">
+                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                                                        <rect x="3" y="11" width="18" height="11" rx="2" />
+                                                                    </svg>
+                                                                    <span><strong>Bed options:</strong> {cabin.facilities?.large_bed ? "King Bed or 2 Twins" : "Double Bed or 2 Beds"}</span>
+                                                                </div>
+                                                                <div className="sd-detail-item">
+                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                                                        <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+                                                                    </svg>
+                                                                    <span><strong>Extra beds available:</strong></span>
+                                                                </div>
+                                                                <ul className="sd-extra-beds-list">
+                                                                    <li>● Rollaway bed</li>
+                                                                    <li>● Crib</li>
+                                                                </ul>
+                                                            </div>
+                                                            <button
+                                                                className="sd-show-more-link"
+                                                                onClick={() => openCabinDetail(cabin)}
+                                                            >
+                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                                                    <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+                                                                </svg>
+                                                                Show more
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td className="sd-max-cell">
+                                                        <div className="sd-guest-icons">
+                                                            {Array(cabin.total_capacity || 2).fill(0).map((_, i) => (
+                                                                <svg key={i} width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                                                </svg>
+                                                            ))}
+                                                        </div>
+                                                        <div className="sd-plus-icon">+</div>
+                                                    </td>
+                                                    <td className="sd-price-cell">
+                                                        <div className="sd-price-info-new">
+                                                            <div className="sd-choose-dates-notice">
+                                                                {cabinAvailDates.length > 0 ? `${cabinAvailDates.length} dates available` : 'No dates available'}
+                                                            </div>
+                                                            <span className="sd-price-amount-new">{formatPrice(cabin.price || ship.lowestPrice || 0)}</span>
+                                                            <span className="sd-price-per-night">per person / night</span>
+                                                            <button
+                                                                className="sd-more-dates-btn"
+                                                                onClick={() => setOpenCabinDates(isOpenDates ? null : cabin.cabin_id)}
+                                                            >
+                                                                {isOpenDates ? 'LESS DATES' : 'MORE DATES'}
+                                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ transform: isOpenDates ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+                                                                    <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                                                                </svg>
+                                                            </button>
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            )}
+
+                                                {/* Available Dates Row */}
+                                                {isOpenDates && (
+                                                    <tr className="sd-dates-row">
+                                                        <td colSpan={4} className="sd-dates-cell">
+                                                            <div className="sd-dates-container" ref={cabinDatesDropdownRef}>
+                                                                {cabinAvailDates.length === 0 ? (
+                                                                    <div className="sd-no-dates">No available dates found</div>
+                                                                ) : (
+                                                                    <div className="sd-dates-list">
+                                                                        {cabinAvailDates.slice(0, 10).map((date, dateIdx) => {
+                                                                            const startDate = new Date(date);
+                                                                            const endDate = new Date(date);
+                                                                            endDate.setDate(endDate.getDate() + tripNights);
+
+                                                                            // Get day of week
+                                                                            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                                                                            const departureDay = dayNames[startDate.getDay()];
+
+                                                                            // Calculate if date is within 30 days (urgency indicator)
+                                                                            const today = new Date();
+                                                                            const daysUntilDeparture = Math.floor((startDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                                                                            const isUrgent = daysUntilDeparture > 0 && daysUntilDeparture <= 30;
+
+                                                                            return (
+                                                                                <div key={dateIdx} className="sd-date-option-detailed">
+                                                                                    <div className="sd-date-option-left">
+                                                                                        <div className="sd-date-departure-info">
+                                                                                            <span className="sd-date-day">{departureDay}</span>
+                                                                                            <span className="sd-date-range-detailed">
+                                                                                                {startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                                                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ margin: '0 0.5rem' }}>
+                                                                                                    <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                                </svg>
+                                                                                                {endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                                                                            </span>
+                                                                                            <span className="sd-date-duration">
+                                                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginRight: '4px' }}>
+                                                                                                    <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+                                                                                                </svg>
+                                                                                                {ship.tripDuration} Days / {tripNights} Nights
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        <div className="sd-date-cabin-details">
+                                                                                            <span className="sd-date-cabin-info">
+                                                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginRight: '4px' }}>
+                                                                                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                                                                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                                                                                </svg>
+                                                                                                {cabin.cabin_name} • Max {cabin.total_capacity} guests
+                                                                                            </span>
+                                                                                            <span className="sd-date-cabin-facilities">
+                                                                                                {cabin.facilities.balcony && (
+                                                                                                    <span className="sd-facility-badge">
+                                                                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                                                                                            <path d="M12 2L2 7v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7L12 2zm0 2.18l8 3.6V17c0 .55-.45 1-1 1H5c-.55 0-1-.45-1-1V7.78l8-3.6z" />
+                                                                                                        </svg>
+                                                                                                        Balcony
+                                                                                                    </span>
+                                                                                                )}
+                                                                                                {cabin.facilities.seaview && (
+                                                                                                    <span className="sd-facility-badge">
+                                                                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                                                                                            <path d="M12 9c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3m0-2c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z" />
+                                                                                                        </svg>
+                                                                                                        Sea View
+                                                                                                    </span>
+                                                                                                )}
+                                                                                                {cabin.facilities.large_bed && (
+                                                                                                    <span className="sd-facility-badge">
+                                                                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                                                                                            <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" />
+                                                                                                        </svg>
+                                                                                                        King Bed
+                                                                                                    </span>
+                                                                                                )}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="sd-date-option-right">
+                                                                                        <div className="sd-date-price-info">
+                                                                                            <span className="sd-date-price-label">Total from</span>
+                                                                                            <span className="sd-date-price-value">{formatPrice(cabin.price || ship.lowestPrice || 0)}</span>
+                                                                                            <span className="sd-date-price-note">per person</span>
+                                                                                        </div>
+                                                                                        {isUrgent && (
+                                                                                            <span className="sd-date-urgency-badge">
+                                                                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: '4px' }}>
+                                                                                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                                                                                                </svg>
+                                                                                                Departing soon
+                                                                                            </span>
+                                                                                        )}
+                                                                                        <LocaleLink
+                                                                                            href={`/results?ship=${encodeURIComponent(ship.name)}&dateFrom=${date}`}
+                                                                                            className="sd-select-btn-detailed"
+                                                                                        >
+                                                                                            SELECT DATES
+                                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginLeft: '6px' }}>
+                                                                                                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                            </svg>
+                                                                                        </LocaleLink>
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
                                             </Fragment>
                                         );
                                     })}
@@ -1203,7 +1197,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                     <p>Board the ship and begin your journey through the stunning {ship.tripName}. Enjoy welcome drinks and settle into your cabin.</p>
                                 </div>
                             </div>
-                            
+
                             {destList.slice(1).map((dest, i) => (
                                 <div key={i} className="sd-day-item">
                                     <div className="sd-day-number">Day {i + 2}</div>
@@ -1213,7 +1207,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                     </div>
                                 </div>
                             ))}
-                            
+
                             <div className="sd-day-item">
                                 <div className="sd-day-number">Day {ship.tripDuration}</div>
                                 <div className="sd-day-content">
@@ -1246,7 +1240,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
             <section id="reviews" ref={(el) => { sectionRefs.current["reviews"] = el; }} className="sd-section-new sd-section-gray">
                 <div className="sd-section-container">
                     <h2 className="sd-section-heading">{reviewCount} Customer reviews for {ship.name}</h2>
-                    
+
                     <div className="sd-reviews-container">
                         {/* Ratings Summary */}
                         <div className="sd-reviews-summary">
@@ -1255,42 +1249,42 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                 <div className="sd-rating-label-large">{ratingLabel(rating)}</div>
                                 <div className="sd-rating-based">Based on {reviewCount} reviews</div>
                             </div>
-                            
+
                             {/* Score Breakdown */}
                             <div className="sd-score-breakdown">
                                 <h3 className="sd-breakdown-title">SCORE BREAKDOWN</h3>
                                 <div className="sd-breakdown-item">
                                     <span className="sd-breakdown-label">Cruise quality</span>
                                     <div className="sd-breakdown-bar">
-                                        <div className="sd-breakdown-fill" style={{width: '95%'}}></div>
+                                        <div className="sd-breakdown-fill" style={{ width: '95%' }}></div>
                                     </div>
                                     <span className="sd-breakdown-score">9.5</span>
                                 </div>
                                 <div className="sd-breakdown-item">
                                     <span className="sd-breakdown-label">Food/Drink</span>
                                     <div className="sd-breakdown-bar">
-                                        <div className="sd-breakdown-fill" style={{width: '94%'}}></div>
+                                        <div className="sd-breakdown-fill" style={{ width: '94%' }}></div>
                                     </div>
                                     <span className="sd-breakdown-score">9.4</span>
                                 </div>
                                 <div className="sd-breakdown-item">
                                     <span className="sd-breakdown-label">Cabin quality</span>
                                     <div className="sd-breakdown-bar">
-                                        <div className="sd-breakdown-fill" style={{width: '96%'}}></div>
+                                        <div className="sd-breakdown-fill" style={{ width: '96%' }}></div>
                                     </div>
                                     <span className="sd-breakdown-score">9.6</span>
                                 </div>
                                 <div className="sd-breakdown-item">
                                     <span className="sd-breakdown-label">Staff quality</span>
                                     <div className="sd-breakdown-bar">
-                                        <div className="sd-breakdown-fill" style={{width: '98%'}}></div>
+                                        <div className="sd-breakdown-fill" style={{ width: '98%' }}></div>
                                     </div>
                                     <span className="sd-breakdown-score">9.8</span>
                                 </div>
                                 <div className="sd-breakdown-item">
                                     <span className="sd-breakdown-label">Activities</span>
                                     <div className="sd-breakdown-bar">
-                                        <div className="sd-breakdown-fill" style={{width: '93%'}}></div>
+                                        <div className="sd-breakdown-fill" style={{ width: '93%' }}></div>
                                     </div>
                                     <span className="sd-breakdown-score">9.3</span>
                                 </div>
@@ -1302,35 +1296,35 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                 <div className="sd-rating-bar-item">
                                     <span>Outstanding</span>
                                     <div className="sd-rating-bar">
-                                        <div className="sd-rating-bar-fill" style={{width: '65%'}}></div>
+                                        <div className="sd-rating-bar-fill" style={{ width: '65%' }}></div>
                                     </div>
                                     <span>{Math.floor(reviewCount * 0.65)}</span>
                                 </div>
                                 <div className="sd-rating-bar-item">
                                     <span>Excellent</span>
                                     <div className="sd-rating-bar">
-                                        <div className="sd-rating-bar-fill" style={{width: '28%'}}></div>
+                                        <div className="sd-rating-bar-fill" style={{ width: '28%' }}></div>
                                     </div>
                                     <span>{Math.floor(reviewCount * 0.28)}</span>
                                 </div>
                                 <div className="sd-rating-bar-item">
                                     <span>Very good</span>
                                     <div className="sd-rating-bar">
-                                        <div className="sd-rating-bar-fill" style={{width: '5%'}}></div>
+                                        <div className="sd-rating-bar-fill" style={{ width: '5%' }}></div>
                                     </div>
                                     <span>{Math.floor(reviewCount * 0.05)}</span>
                                 </div>
                                 <div className="sd-rating-bar-item">
                                     <span>Good</span>
                                     <div className="sd-rating-bar">
-                                        <div className="sd-rating-bar-fill" style={{width: '1%'}}></div>
+                                        <div className="sd-rating-bar-fill" style={{ width: '1%' }}></div>
                                     </div>
                                     <span>{Math.floor(reviewCount * 0.01)}</span>
                                 </div>
                                 <div className="sd-rating-bar-item">
                                     <span>Average</span>
                                     <div className="sd-rating-bar">
-                                        <div className="sd-rating-bar-fill" style={{width: '1%'}}></div>
+                                        <div className="sd-rating-bar-fill" style={{ width: '1%' }}></div>
                                     </div>
                                     <span>{Math.floor(reviewCount * 0.01)}</span>
                                 </div>
@@ -1350,8 +1344,8 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                 </div>
                                 <div className="sd-review-rating">Excellent</div>
                                 <p className="sd-review-text">
-                                    Amazing experience! The crew was incredibly friendly and attentive. 
-                                    The cabin was spacious and clean. Food was delicious with plenty of variety. 
+                                    Amazing experience! The crew was incredibly friendly and attentive.
+                                    The cabin was spacious and clean. Food was delicious with plenty of variety.
                                     Highly recommend this cruise!
                                 </p>
                             </div>
@@ -1367,7 +1361,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                 </div>
                                 <div className="sd-review-rating">Outstanding</div>
                                 <p className="sd-review-text">
-                                    Perfect honeymoon trip! Beautiful destinations, professional staff, 
+                                    Perfect honeymoon trip! Beautiful destinations, professional staff,
                                     and excellent service throughout. The sunset views were breathtaking.
                                 </p>
                             </div>
@@ -1383,7 +1377,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                 </div>
                                 <div className="sd-review-rating">Excellent</div>
                                 <p className="sd-review-text">
-                                    Wonderful cruise with great amenities. The itinerary was well-planned 
+                                    Wonderful cruise with great amenities. The itinerary was well-planned
                                     and we got to see some amazing places. Would definitely sail again!
                                 </p>
                             </div>
@@ -1466,7 +1460,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                     <div className="sd-cabin-modal-redesigned" onClick={(e) => e.stopPropagation()}>
                         <button className="sd-cabin-modal-close" onClick={closeCabinDetail}>
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                         </button>
 
@@ -1480,8 +1474,8 @@ export default function ShipDetail({ slug }: { slug: string }) {
 
                                 <div className="sd-cabin-modal-specs">
                                     SLEEPS {selectedCabinForDetail.total_capacity || 2} | {
-                                        selectedCabinForDetail.facilities?.large_bed 
-                                            ? "KING BED OR 2 TWINS" 
+                                        selectedCabinForDetail.facilities?.large_bed
+                                            ? "KING BED OR 2 TWINS"
                                             : "TWIN BEDS"
                                     } | PRIVATE CABIN
                                 </div>
@@ -1557,22 +1551,22 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                     />
                                     {getCabinGalleryImages(selectedCabinForDetail).length > 1 && (
                                         <>
-                                            <button 
-                                                className="sd-cabin-modal-arrow sd-cabin-modal-prev" 
+                                            <button
+                                                className="sd-cabin-modal-arrow sd-cabin-modal-prev"
                                                 onClick={prevModalImage}
                                                 aria-label="Previous image"
                                             >
                                                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                                    <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                                                 </svg>
                                             </button>
-                                            <button 
-                                                className="sd-cabin-modal-arrow sd-cabin-modal-next" 
+                                            <button
+                                                className="sd-cabin-modal-arrow sd-cabin-modal-next"
                                                 onClick={nextModalImage}
                                                 aria-label="Next image"
                                             >
                                                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                                    <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
                                                 </svg>
                                             </button>
                                             <div className="sd-cabin-modal-counter">

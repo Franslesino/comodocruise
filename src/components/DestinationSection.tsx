@@ -262,7 +262,7 @@ export default function DestinationSection() {
                                     Set Sail to {activeDest.name}
                                 </h3>
                                 <LocaleLink
-                                    href={`/destinations/${activeDest.slug}`}
+                                    href={`/destinations/${activeDest.slug}/cruises`}
                                     className="text-gray-400 hover:text-blue-600 transition-colors"
                                 >
                                     <ArrowRightIcon className="w-5 h-5" />
@@ -370,7 +370,7 @@ export default function DestinationSection() {
                             {activeDest.operators.length > 2 && (
                                 <div className="pt-4 mt-4 border-t border-gray-100 text-center">
                                     <LocaleLink
-                                        href={`/destinations/${activeDest.slug}`}
+                                        href={`/destinations/${activeDest.slug}/cruises`}
                                         className="text-sm text-blue-600 font-semibold hover:underline"
                                     >
                                         View all {activeDest.operators.length} cruises →

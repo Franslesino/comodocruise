@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { LOCALE_NAMES, NonDefaultLocale, SUPPORTED_LOCALES } from "@/lib/i18n";
-import DestinationAboutPage from "@/components/DestinationAboutPage";
+import DestinationCruisesPage from "@/components/DestinationCruisesPage";
 
 interface PageProps {
     params: Promise<{ lang: NonDefaultLocale; slug: string }>;
@@ -17,12 +17,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const { lang, slug } = await params;
     const name = slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
     return {
-        title: `${name} - COMODOCRUISE (${LOCALE_NAMES[lang] || "EN"})`,
-        description: `Discover ${name}, Indonesia — highlights, attractions, and available cruises.`,
+        title: `${name} Cruises - COMODOCRUISE (${LOCALE_NAMES[lang] || "EN"})`,
+        description: `Browse all available liveaboard cruises to ${name}, Indonesia.`,
     };
 }
 
-export default async function DestinationDetailPage({ params }: PageProps) {
+export default async function DestinationCruisesRoute({ params }: PageProps) {
     const { slug } = await params;
-    return <DestinationAboutPage slug={slug} />;
+    return <DestinationCruisesPage slug={slug} />;
 }

@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import DestinationAboutPage from "@/components/DestinationAboutPage";
+import DestinationCruisesPage from "@/components/DestinationCruisesPage";
 import { getDestinations } from "@/lib/api";
 
 interface PageProps {
@@ -36,12 +36,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const { slug } = await params;
     const name = slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
     return {
-        title: `${name} - COMODOCRUISE`,
-        description: `Discover ${name}, Indonesia — highlights, attractions, and available cruises.`,
+        title: `${name} Cruises - COMODOCRUISE`,
+        description: `Browse all available liveaboard cruises to ${name}, Indonesia.`,
     };
 }
 
-export default async function DestinationDetailPage({ params }: PageProps) {
+export default async function DestinationCruisesRoute({ params }: PageProps) {
     const { slug } = await params;
-    return <DestinationAboutPage slug={slug} />;
+    return <DestinationCruisesPage slug={slug} />;
 }
