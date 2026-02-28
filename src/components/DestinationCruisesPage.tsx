@@ -307,7 +307,7 @@ function DestCruiseCard({ ship }: { ship: ParsedShip }) {
                             <>
                                 <p className="dest-card-from">From</p>
                                 <p className="dest-card-price" style={{ textDecoration: "line-through", color: "#9ca3af", fontSize: "0.8em" }}>{formatPrice(Math.round(ship.lowestPrice * 1.25))}</p>
-                                <p className="dest-card-price" style={{ color: "#dc2626" }}>{formatPrice(ship.lowestPrice)}</p>
+                                <p className="dest-card-price" style={{ color: "#12214a" }}>{formatPrice(ship.lowestPrice)}</p>
                                 <p className="dest-card-per">/night</p>
                             </>
                         ) : (

@@ -246,8 +246,8 @@ export default function PromoSection() {
                                     key={index}
                                     onClick={() => scrollToIndex(index)}
                                     className={`transition-all duration-300 rounded-full ${currentPage === index
-                                            ? "w-10 h-2.5 bg-[#12214a]"
-                                            : "w-2.5 h-2.5 bg-gray-300 hover:bg-gray-400"
+                                        ? "w-10 h-2.5 bg-[#12214a]"
+                                        : "w-2.5 h-2.5 bg-gray-300 hover:bg-gray-400"
                                         }`}
                                     aria-label={`Go to page ${index + 1}`}
                                 />
@@ -337,7 +337,7 @@ export default function PromoSection() {
                                             </h3>
                                             <div className="text-right flex-shrink-0">
                                                 <span className="text-[11px] text-gray-500 uppercase">From</span>
-                                                <p className="text-lg font-bold text-gray-900">{formatIDR(ship.lowestPrice)}</p>
+                                                <p className="text-lg font-bold text-[#12214a]">{formatIDR(ship.lowestPrice)}</p>
                                             </div>
                                         </div>
 

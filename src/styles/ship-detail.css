@@ -2679,10 +2679,14 @@
 @media (max-width: 768px) {
     .sd-cabins-table {
         border-radius: 8px;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .sd-table {
         display: block;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .sd-table thead {
@@ -2692,6 +2696,8 @@
     .sd-table tbody,
     .sd-table tr {
         display: block;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .sd-cabin-row {
@@ -2699,6 +2705,8 @@
         border: 1px solid #e2e8f0;
         border-radius: 8px;
         padding: 0.75rem;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .sd-cabin-image-cell {
@@ -2810,6 +2818,21 @@
 
     .sd-dates-container {
         padding: 0.75rem;
+    }
+
+    .sd-dates-cell {
+        display: block !important;
+        width: 100%;
+        padding: 0 !important;
+    }
+
+    .sd-reserve-btn {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+        padding: 0.65rem;
+        font-size: 0.82rem;
+        min-width: unset;
     }
 
     .sd-date-option {
@@ -3544,7 +3567,7 @@
 
 .sd-cabin-modal-reserve-btn {
     padding: 1rem 3rem;
-    background: #12214a;
+    background: var(--accent);
     color: #fff;
     border: none;
     border-radius: 0;
@@ -3560,7 +3583,7 @@
 }
 
 .sd-cabin-modal-reserve-btn:hover {
-    background: #1a3060;
+    background: var(--accent-dark);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(18, 33, 74, 0.3);
 }
@@ -3674,5 +3697,525 @@
 
     .sd-bc-bar-current {
         max-width: 160px;
+    }
+}
+
+/* ============================================
+   RESERVE BUTTON & ITINERARY STYLES
+   ============================================ */
+
+/* ─── Desktop RESERVE button ─── */
+.sd-reserve-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0.55rem 1.3rem;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    white-space: nowrap;
+}
+
+.sd-reserve-btn:hover:not(:disabled) {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+}
+
+.sd-reserve-btn:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    color: #9ca3af;
+}
+
+/* ─── RESERVED badge (desktop) ─── */
+.sd-reserved-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.55rem 1.3rem;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+/* ─── Mobile RESERVE button ─── */
+.sd-reserve-btn-mobile {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 1rem;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.sd-reserve-btn-mobile:hover:not(:disabled) {
+    background: var(--accent-dark);
+}
+
+.sd-reserve-btn-mobile:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    color: #9ca3af;
+}
+
+/* ─── RESERVED badge (mobile) ─── */
+.sd-reserved-badge-mobile {
+    padding: 0.35rem 0.75rem;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ============================================
+   GUEST COUNT MODAL
+   ============================================ */
+.sd-guest-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.sd-guest-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+    position: relative;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.25s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.sd-guest-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+
+.sd-guest-modal-close:hover {
+    background: #f3f4f6;
+    color: #111;
+}
+
+.sd-guest-modal-title {
+    margin: 0 0 0.5rem;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.sd-guest-modal-subtitle {
+    margin: 0 0 0.25rem;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.sd-guest-modal-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 1.5rem;
+    font-size: 0.85rem;
+    color: #374151;
+    background: #f3f4f6;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+}
+
+.sd-guest-modal-counter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.sd-guest-counter-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #d1d5db;
+    background: #fff;
+    cursor: pointer;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.sd-guest-counter-btn:hover:not(:disabled) {
+    border-color: #2563eb;
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.sd-guest-counter-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.sd-guest-counter-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    min-width: 40px;
+}
+
+.sd-guest-modal-max {
+    margin: 0 0 1.5rem;
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+.sd-guest-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.sd-guest-modal-cancel {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.sd-guest-modal-cancel:hover {
+    background: #f9fafb;
+}
+
+.sd-guest-modal-confirm {
+    flex: 1.5;
+    padding: 0.75rem;
+    border: none;
+    background: #2563eb;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.sd-guest-modal-confirm:hover {
+    background: #1d4ed8;
+}
+
+/* ============================================
+   ITINERARY FLOATING BADGE
+   ============================================ */
+.sd-itinerary-badge {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.75rem 1.25rem;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    animation: badgePulse 2s ease-in-out infinite;
+}
+
+.sd-itinerary-badge:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.45);
+}
+
+@keyframes badgePulse {
+
+    0%,
+    100% {
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
+    }
+
+    50% {
+        box-shadow: 0 8px 30px rgba(37, 99, 235, 0.5);
+    }
+}
+
+@media (max-width: 768px) {
+    .sd-itinerary-badge {
+        bottom: 1rem;
+        right: 1rem;
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* ============================================
+   ITINERARY PANEL (SLIDE-IN)
+   ============================================ */
+.sd-itinerary-panel-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9998;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.sd-itinerary-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 420px;
+    max-width: 100vw;
+    height: 100vh;
+    background: #fff;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -8px 0 30px rgba(0, 0, 0, 0.15);
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+.sd-itinerary-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.sd-itinerary-panel-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.sd-itinerary-panel-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 4px;
+    border-radius: 6px;
+}
+
+.sd-itinerary-panel-close:hover {
+    background: #f3f4f6;
+    color: #111;
+}
+
+.sd-itinerary-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: #9ca3af;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.sd-itinerary-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.sd-itinerary-item {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.sd-itinerary-item-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.sd-itinerary-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sd-itinerary-ship {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.sd-itinerary-cabin {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.sd-itinerary-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ef4444;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+
+.sd-itinerary-remove:hover {
+    background: #fef2f2;
+}
+
+.sd-itinerary-item-dates {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #374151;
+    margin-bottom: 0.4rem;
+}
+
+.sd-itinerary-item-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.sd-itinerary-item-meta span:last-child {
+    font-weight: 700;
+    color: #111827;
+}
+
+.sd-itinerary-panel-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.sd-itinerary-contact-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 0.85rem;
+    background: #25d366;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.sd-itinerary-contact-btn:hover {
+    background: #1da851;
+}
+
+@media (max-width: 768px) {
+    .sd-itinerary-panel {
+        width: 100vw;
+        top: auto;
+        bottom: 0;
+        height: 80vh;
+        border-radius: 20px 20px 0 0;
+        animation: slideInBottom 0.3s ease-out;
+    }
+
+    @keyframes slideInBottom {
+        from {
+            transform: translateY(100%);
+        }
+
+        to {
+            transform: translateY(0);
+        }
     }
 }

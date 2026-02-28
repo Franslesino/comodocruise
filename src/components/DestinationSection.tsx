@@ -363,7 +363,7 @@ export default function DestinationSection() {
                                                                 maximumFractionDigits: 0,
                                                             }).format(Math.round(ship.lowestPrice * 1.25))}
                                                         </p>
-                                                        <p className="text-sm sm:text-base font-bold text-emerald-600">
+                                                        <p className="text-sm sm:text-base font-bold text-[#12214a]">
                                                             {new Intl.NumberFormat('id-ID', {
                                                                 style: 'currency',
                                                                 currency: 'IDR',

@@ -18,9 +18,10 @@ import {
     getDirectImageUrl,
     toLocalDateStr,
 } from "@/lib/api";
-import type { ParsedShip, CabinData, CabinWithDates, OperatorAvailabilityWithDates } from "@/types/api";
+import type { ParsedShip, CabinData, CabinWithDates, OperatorAvailabilityWithDates, ItineraryItem } from "@/types/api";
 import type { ReactNode } from "react";
 import "@/styles/ship-detail.css";
+import "@/styles/results.css";
 
 /* ─── helpers ─── */
 const PLACEHOLDER_PRICE = 43243243;
@@ -169,6 +170,45 @@ export default function ShipDetail({ slug }: { slug: string }) {
     const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
     const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
 
+    /* ─── itinerary + reservation state ─── */
+    const [itineraryItems, setItineraryItems] = useState<ItineraryItem[]>([]);
+    const [showItineraryPanel, setShowItineraryPanel] = useState(false);
+    const [showGuestModal, setShowGuestModal] = useState(false);
+    const [pendingReservation, setPendingReservation] = useState<{
+        cabin: CabinData; shipName: string; selectedDate: string;
+    } | null>(null);
+    const [guestCount, setGuestCount] = useState(2);
+    const [maxGuestsForCabin, setMaxGuestsForCabin] = useState(4);
+
+    /* ─── Swipe state for cabin gallery ─── */
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+    // Minimum swipe distance (in px)
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = (cabinId: string) => {
+        if (!touchStart || !touchEnd) return;
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe) {
+            handleCabinNextImage(cabinId, { stopPropagation: () => { } } as React.MouseEvent);
+        }
+        if (isRightSwipe) {
+            handleCabinPrevImage(cabinId, { stopPropagation: () => { } } as React.MouseEvent);
+        }
+    };
     /* ─── Phase 1: fetch ship + cabins (fast, cached) → render immediately ─── */
     useEffect(() => {
         let cancelled = false;
@@ -429,6 +469,76 @@ export default function ShipDetail({ slug }: { slug: string }) {
 
     const getPriceSymbol = (priceStr: string) => priceStr.replace(/[0-9,.\s]/g, "").trim() || "Rp";
     const getPriceVal = (priceStr: string) => priceStr.replace(/[^0-9,.\s]/g, "").trim();
+
+    /* ─── Load itinerary from localStorage ─── */
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem("KOMODOCRUISES_itinerary");
+            if (saved) setItineraryItems(JSON.parse(saved));
+        } catch { /* ignore */ }
+    }, []);
+
+    /* ─── Reservation handlers ─── */
+    const openGuestModal = (cabin: CabinData, shipName: string, selectedDate: string) => {
+        setPendingReservation({ cabin, shipName, selectedDate });
+        setGuestCount(2);
+        setMaxGuestsForCabin(cabin.total_capacity || 4);
+        setShowGuestModal(true);
+        document.body.style.overflow = "hidden";
+    };
+
+    const closeGuestModal = () => {
+        setShowGuestModal(false);
+        setPendingReservation(null);
+        document.body.style.overflow = "";
+    };
+
+    const confirmReservation = () => {
+        if (!pendingReservation) return;
+        const newItem: ItineraryItem = {
+            cabin: pendingReservation.cabin.cabin_name,
+            ship: pendingReservation.shipName,
+            date: pendingReservation.selectedDate,
+            price: pendingReservation.cabin.price || ship?.lowestPrice || 0,
+            guests: guestCount,
+            addedAt: Date.now(),
+        };
+        const updated = [...itineraryItems, newItem];
+        setItineraryItems(updated);
+        localStorage.setItem("KOMODOCRUISES_itinerary", JSON.stringify(updated));
+
+        closeGuestModal();
+        setOpenCabinDates(null);
+        setShowItineraryPanel(true);
+    };
+
+    const unsubscribeItineraryListener = useCallback(() => {
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === "KOMODOCRUISES_itinerary") {
+                try {
+                    setItineraryItems(e.newValue ? JSON.parse(e.newValue) : []);
+                } catch { }
+            }
+        };
+        window.addEventListener("storage", handleStorageChange);
+        return () => window.removeEventListener("storage", handleStorageChange);
+    }, []);
+
+    useEffect(() => {
+        const unsubscribe = unsubscribeItineraryListener();
+        return unsubscribe;
+    }, [unsubscribeItineraryListener]);
+
+    const itineraryTotal = itineraryItems.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
+
+    const removeFromItinerary = (index: number) => {
+        const updated = itineraryItems.filter((_, i) => i !== index);
+        setItineraryItems(updated);
+        localStorage.setItem("KOMODOCRUISES_itinerary", JSON.stringify(updated));
+    };
+
+    const isCabinInItinerary = (cabinName: string, shipName: string, date: string) =>
+        itineraryItems.some(it => it.cabin === cabinName && it.ship === shipName && it.date === date);
 
     /* Gallery images — combine main + extras, filter invalid */
     const galleryImages =
@@ -826,8 +936,8 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                             <button
                                                                 key={idx}
                                                                 className={`sd-calendar-day ${isPast ? 'past' : ''} ${!available ? 'unavailable' : ''} ${selected ? 'selected' : ''} ${inRange ? 'in-range' : ''}`}
-                                                                onClick={() => !isPast && available && handleDateClick(date)}
-                                                                disabled={isPast || !available}
+                                                                onClick={() => !isPast && handleDateClick(date)}
+                                                                disabled={isPast}
                                                             >
                                                                 {date.getDate()}
                                                             </button>
@@ -867,8 +977,8 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                                     <button
                                                                         key={idx}
                                                                         className={`sd-calendar-day ${isPast ? 'past' : ''} ${!available ? 'unavailable' : ''} ${selected ? 'selected' : ''} ${inRange ? 'in-range' : ''}`}
-                                                                        onClick={() => !isPast && available && handleDateClick(date)}
-                                                                        disabled={isPast || !available}
+                                                                        onClick={() => !isPast && handleDateClick(date)}
+                                                                        disabled={isPast}
                                                                     >
                                                                         {date.getDate()}
                                                                     </button>
@@ -928,7 +1038,12 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                 <tr className="sd-cabin-row">
                                                     <td className="sd-cabin-image-cell">
                                                         <div className="sd-cabin-carousel">
-                                                            <div className="sd-cabin-carousel-img-wrapper">
+                                                            <div
+                                                                className="sd-cabin-carousel-img-wrapper"
+                                                                onTouchStart={onTouchStart}
+                                                                onTouchMove={onTouchMove}
+                                                                onTouchEnd={() => onTouchEnd(cabin.cabin_id)}
+                                                            >
                                                                 <Image
                                                                     src={getDirectImageUrl(cabinImages[currentImageIndex])}
                                                                     alt={cabin.cabin_name}
@@ -1154,15 +1269,25 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                                                                     Departing soon
                                                                                                 </span>
                                                                                             )}
-                                                                                            <LocaleLink
-                                                                                                href={`/results?ship=${encodeURIComponent(ship.name)}&dateFrom=${date}`}
-                                                                                                className="sd-select-btn-detailed"
-                                                                                            >
-                                                                                                SELECT DATES
-                                                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginLeft: '6px' }}>
-                                                                                                    <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                                </svg>
-                                                                                            </LocaleLink>
+                                                                                            {isCabinInItinerary(cabin.cabin_name, ship.name, date) ? (
+                                                                                                <span className="sd-reserved-badge">
+                                                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                                                                                    RESERVED
+                                                                                                </span>
+                                                                                            ) : (
+                                                                                                <button
+                                                                                                    className="sd-reserve-btn"
+                                                                                                    disabled={isUrgent}
+                                                                                                    onClick={() => openGuestModal(cabin, ship.name, date)}
+                                                                                                >
+                                                                                                    {isUrgent ? 'UNAVAILABLE' : 'RESERVE'}
+                                                                                                    {!isUrgent && (
+                                                                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginLeft: '6px' }}>
+                                                                                                            <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                                        </svg>
+                                                                                                    )}
+                                                                                                </button>
+                                                                                            )}
                                                                                         </div>
                                                                                     </div>
                                                                                 );
@@ -1180,9 +1305,8 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                                                 const isUrgent = daysUntilDeparture > 0 && daysUntilDeparture <= 30;
 
                                                                                 return (
-                                                                                    <LocaleLink
+                                                                                    <div
                                                                                         key={dateIdx}
-                                                                                        href={`/results?ship=${encodeURIComponent(ship.name)}&dateFrom=${date}`}
                                                                                         className="sd-date-compact-row"
                                                                                     >
                                                                                         <div className="sd-date-compact-left">
@@ -1194,10 +1318,18 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                                                             </span>
                                                                                             {isUrgent && <span className="sd-date-compact-urgent">Soon</span>}
                                                                                         </div>
-                                                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="sd-date-compact-arrow">
-                                                                                            <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
-                                                                                        </svg>
-                                                                                    </LocaleLink>
+                                                                                        {isCabinInItinerary(cabin.cabin_name, ship.name, date) ? (
+                                                                                            <span className="sd-reserved-badge-mobile">Reserved</span>
+                                                                                        ) : (
+                                                                                            <button
+                                                                                                className="sd-reserve-btn-mobile"
+                                                                                                disabled={isUrgent}
+                                                                                                onClick={() => openGuestModal(cabin, ship.name, date)}
+                                                                                            >
+                                                                                                {isUrgent ? 'UNAVAILABLE' : 'RESERVE'}
+                                                                                            </button>
+                                                                                        )}
+                                                                                    </div>
                                                                                 );
                                                                             })}
                                                                         </div>
@@ -1632,6 +1764,164 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                 RESERVE NOW
                             </LocaleLink>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ══════════ FLOATING ITINERARY BUTTON ══════════ */}
+            {itineraryItems.length > 0 && !showItineraryPanel && (
+                <button className="itinerary-fab" onClick={() => setShowItineraryPanel(true)}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                        <rect x="9" y="3" width="6" height="4" rx="1" />
+                        <path d="M9 12h6M9 16h4" />
+                    </svg>
+                    <span>My Itinerary</span>
+                    <span className="itinerary-fab-badge">{itineraryItems.length}</span>
+                </button>
+            )}
+
+            {/* ══════════ ITINERARY PANEL ══════════ */}
+            {showItineraryPanel && (
+                <div className="itinerary-panel-overlay" onClick={() => setShowItineraryPanel(false)}>
+                    <div className="itinerary-panel" onClick={e => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="itinerary-panel-header">
+                            <div className="itinerary-panel-title">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                                    <rect x="9" y="3" width="6" height="4" rx="1" />
+                                    <path d="M9 12h6M9 16h4" />
+                                </svg>
+                                <span>My Itinerary</span>
+                                {itineraryItems.length > 0 && (
+                                    <span className="itinerary-count-badge">{itineraryItems.length}</span>
+                                )}
+                            </div>
+                            <button className="itinerary-panel-close" onClick={() => setShowItineraryPanel(false)}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="itinerary-panel-body">
+                            {itineraryItems.length === 0 ? (
+                                <div className="itinerary-empty">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5">
+                                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                                        <rect x="9" y="3" width="6" height="4" rx="1" />
+                                    </svg>
+                                    <p>No reservations yet.</p>
+                                    <p className="itinerary-empty-sub">Reserve a cabin to get started.</p>
+                                </div>
+                            ) : (
+                                <div className="itinerary-items-list">
+                                    {itineraryItems.map((item, idx) => (
+                                        <div key={idx} className="itinerary-item-card">
+                                            <div className="itinerary-item-top">
+                                                <div className="itinerary-item-info">
+                                                    <span className="itinerary-item-ship">{item.ship}</span>
+                                                    <span className="itinerary-item-cabin">{item.cabin}</span>
+                                                </div>
+                                                <button className="itinerary-item-remove" onClick={() => removeFromItinerary(idx)} title="Remove">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div className="itinerary-item-details">
+                                                <div className="itinerary-detail-row">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                                    </svg>
+                                                    <span>{formatDateDisplay(item.date)}</span>
+                                                </div>
+                                                <div className="itinerary-detail-row">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                                                        <circle cx="9" cy="7" r="4" />
+                                                        <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                                                        <path d="M16 3.13a4 4 0 010 7.75" />
+                                                    </svg>
+                                                    <span>{item.guests} {item.guests === 1 ? "guest" : "guests"}</span>
+                                                </div>
+                                                {item.price > 0 && (
+                                                    <div className="itinerary-item-price">
+                                                        {formatIDR(item.price)}
+                                                        <span className="itinerary-item-price-unit">/night</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        {itineraryItems.length > 0 && (
+                            <div className="itinerary-panel-footer">
+                                <div className="itinerary-summary">
+                                    <div className="itinerary-summary-row">
+                                        <span>Total Cabins</span>
+                                        <span className="itinerary-summary-value">{itineraryItems.length}</span>
+                                    </div>
+                                    <div className="itinerary-summary-row">
+                                        <span>Total Guests</span>
+                                        <span className="itinerary-summary-value">{itineraryItems.reduce((s, i) => s + i.guests, 0)}</span>
+                                    </div>
+                                    {itineraryTotal > 0 && (
+                                        <div className="itinerary-summary-row itinerary-summary-total">
+                                            <span>Estimated Total</span>
+                                            <span className="itinerary-summary-value">{formatIDR(itineraryTotal)}</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="itinerary-footer-actions">
+                                    <button className="itinerary-btn-clear" onClick={() => {
+                                        setItineraryItems([]);
+                                        localStorage.removeItem("KOMODOCRUISES_itinerary");
+                                    }}>Clear All</button>
+                                    <button className="itinerary-btn-checkout" onClick={() => {
+                                        setShowItineraryPanel(false);
+                                        const locale = getLocaleFromPathname(pathname);
+                                        window.location.href = localizePath("/reservation", locale);
+                                    }}>Proceed to Booking →</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* ══════════ GUEST COUNT MODAL ══════════ */}
+            {showGuestModal && pendingReservation && (
+                <div className="modal-overlay" onClick={closeGuestModal}>
+                    <div className="guest-modal-content" onClick={e => e.stopPropagation()}>
+                        <button className="guest-modal-close" onClick={closeGuestModal}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
+                        <h2 className="guest-modal-title">Number of Guests</h2>
+                        <p className="guest-modal-subtitle">Please indicate how many guests will be accommodated:</p>
+                        <div className="guest-counter-section">
+                            <div className="guest-counter-row">
+                                <span className="guest-counter-label">Guests</span>
+                                <div className="guest-counter-controls">
+                                    <button className="guest-counter-btn" onClick={() => setGuestCount(Math.max(1, guestCount - 1))} disabled={guestCount <= 1}>−</button>
+                                    <span className="guest-counter-value">{guestCount}</span>
+                                    <button className="guest-counter-btn" onClick={() => setGuestCount(Math.min(maxGuestsForCabin, guestCount + 1))} disabled={guestCount >= maxGuestsForCabin}>+</button>
+                                </div>
+                            </div>
+                            <p className="guest-availability-note">{maxGuestsForCabin} available</p>
+                        </div>
+                        <button className="guest-modal-confirm-btn" onClick={confirmReservation}>ADD TO ITINERARY</button>
                     </div>
                 </div>
             )}

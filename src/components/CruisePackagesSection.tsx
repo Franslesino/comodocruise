@@ -207,7 +207,7 @@ export default function CruisePackagesSection() {
                                         <div className="text-right flex-shrink-0 ml-3">
                                             <span className="block text-[10px] text-gray-400 uppercase tracking-wide">From</span>
                                             <span className="block text-sm text-gray-400 line-through">{formatIDR(Math.round(ship.lowestPrice * 1.25))}</span>
-                                            <span className="text-xl font-bold text-emerald-600">{formatIDR(ship.lowestPrice)}</span>
+                                            <span className="text-xl font-bold text-[#12214a]">{formatIDR(ship.lowestPrice)}</span>
                                         </div>
                                     </div>
                                 </div>
