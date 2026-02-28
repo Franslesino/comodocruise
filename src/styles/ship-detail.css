@@ -2320,6 +2320,31 @@
     box-shadow: 0 4px 8px rgba(18, 33, 74, 0.2);
 }
 
+.sd-reserve-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1.5rem;
+    background: #12214a;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    min-width: 140px;
+}
+
+.sd-reserve-btn:hover {
+    background: #0d1a3d;
+}
+
+.sd-reserve-btn.reserved {
+    background: #22c55e;
+    color: #fff;
+}
+
 .sd-more-dates-btn {
     display: inline-flex;
     align-items: center;

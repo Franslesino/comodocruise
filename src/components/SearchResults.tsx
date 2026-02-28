@@ -155,6 +155,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
     // Ship/cabin view state
     const [selectedShipForCabins, setSelectedShipForCabins] = useState<string | null>(searchParams.get("ship"));
     const [openCabinDates, setOpenCabinDates] = useState<string | null>(null);
+    const [openShipDates, setOpenShipDates] = useState<string | null>(null);
     const cabinDatesDropdownRef = useRef<HTMLDivElement>(null);
 
     // Cabin images cache
@@ -507,6 +508,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
         if (cabin.image_main) images.push(cabin.image_main);
         return images.length > 0 ? images : ["/placeholder-cabin.svg"];
     };
+
 
     const getShipGalleryImages = (ship: ShipWithDetails): string[] => {
         const images: string[] = [];
@@ -1395,56 +1397,53 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                                 </div>
 
                                                 {/* Price & Actions Section */}
-                                                <div className="ship-card-actions">
-                                                    {/* Price Display */}
-                                                    <div className="price-display">
-                                                        <div className="price-main">
+                                                <div className="price-section" style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', borderLeft: '1px solid #e2e8f0', width: '280px', flexShrink: 0, justifyContent: 'space-between', background: '#f8fafc' } as React.CSSProperties}>
+                                                    <div className="price-display" style={{ width: '100%', marginBottom: '1rem' } as React.CSSProperties}>
+                                                        <div className="price-main" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' } as React.CSSProperties}>
                                                             {ship.startFromPrice > 0 ? (
                                                                 <>
-                                                                    <sup className="price-currency">{getPriceSymbol(formatPrice(ship.startFromPrice))}</sup>
-                                                                    <span className="price-amount">{getPriceVal(formatPrice(ship.startFromPrice))}</span>
-                                                                    <sup className="price-pp">PP</sup>
-                                                                    <button className="price-info-btn" aria-label="Price information">
-                                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                            <circle cx="12" cy="12" r="10" />
-                                                                            <line x1="12" y1="16" x2="12" y2="12" />
-                                                                            <line x1="12" y1="8" x2="12.01" y2="8" />
-                                                                        </svg>
-                                                                    </button>
+                                                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' } as React.CSSProperties}>
+                                                                        <span style={{ fontSize: '1rem', fontWeight: 700, color: '#12214a' } as React.CSSProperties}>{getPriceSymbol(formatPrice(ship.startFromPrice))}</span>
+                                                                        <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#12214a' } as React.CSSProperties}>{getPriceVal(formatPrice(ship.startFromPrice))}</span>
+                                                                    </div>
+                                                                    <span style={{ fontSize: '0.8rem', color: '#64748b' } as React.CSSProperties}>per person / night</span>
                                                                 </>
                                                             ) : (
-                                                                <span className="price-contact">Contact for price</span>
+                                                                <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#12214a' } as React.CSSProperties}>Contact for price</span>
                                                             )}
                                                         </div>
-                                                        {ship.startFromPrice > 0 && (
-                                                            <div className="price-per-night">
-                                                                <span>${Math.round(ship.startFromPrice / (parseInt(ship.trip) || 3))}/night</span>
-                                                                <span className="cabin-type-dropdown">
-                                                                    • Inside Cabin
-                                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                        <polyline points="6 9 12 15 18 9" />
-                                                                    </svg>
-                                                                </span>
-                                                            </div>
-                                                        )}
                                                     </div>
-
-                                                    {/* Brand Logo */}
-                                                    <div className="brand-logo">
-                                                        <span style={{ fontWeight: 700, color: '#12214a', fontSize: '0.9rem', letterSpacing: '0.5px' }}>KOMODOCRUISES</span>
+                                                    
+                                                    <div className="action-buttons-container" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' } as React.CSSProperties}>
+                                                        <button 
+                                                            className="btn-view-cabins"
+                                                            onClick={() => handleViewCabins(ship.name)}
+                                                            style={{ 
+                                                                width: '100%', padding: '0.75rem', border: '1px solid #12214a', color: '#12214a', 
+                                                                borderRadius: '6px', fontSize: '0.9rem', fontWeight: 600, transition: 'all 0.2s', background: 'transparent', cursor: 'pointer' 
+                                                            } as React.CSSProperties}
+                                                            onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; }}
+                                                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                                        >
+                                                            View Cabins
+                                                        </button>
+                                                        <button 
+                                                            className="btn-cruise-details"
+                                                            onClick={() => {
+                                                                const slug = ship.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                                                                const locale = getLocaleFromPathname(pathname);
+                                                                router.push(localizePath(`/cruises/${slug}`, locale));
+                                                            }}
+                                                            style={{ 
+                                                                width: '100%', padding: '0.75rem', background: '#12214a', color: 'white', 
+                                                                borderRadius: '6px', fontSize: '0.9rem', fontWeight: 600, transition: 'background 0.2s', border: 'none', cursor: 'pointer' 
+                                                            } as React.CSSProperties}
+                                                            onMouseEnter={(e) => e.currentTarget.style.background = '#0f1c3f'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.background = '#12214a'}
+                                                        >
+                                                            Cruise Details
+                                                        </button>
                                                     </div>
-
-                                                    {/* Action Buttons */}
-                                                    <button className="btn-view-deal" onClick={() => handleViewCabins(ship.name)}>
-                                                        View Cabins
-                                                    </button>
-                                                    <button className="btn-cruise-details" onClick={() => {
-                                                        const slug = ship.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-                                                        const locale = getLocaleFromPathname(pathname);
-                                                        router.push(localizePath(`/cruises/${slug}`, locale));
-                                                    }}>
-                                                        Cruise Details
-                                                    </button>
                                                 </div>
                                             </div>
                                         );
@@ -1608,6 +1607,12 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                                                             <span className="sd-price-amount-new">{formatPrice(cabin.price || selectedShip?.startFromPrice || 0)}</span>
                                                                             <span className="sd-price-per-night">per person / night</span>
                                                                             <button
+                                                                                className={`sd-reserve-btn${isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, cabinSelectedDates[cabin.cabin_id]?.dateFrom || searchCriteria.dateFrom || toLocalDateStr(new Date())) ? ' reserved' : ''}`}
+                                                                                onClick={() => handleReserveNow(cabin, selectedShipForCabins!)}
+                                                                            >
+                                                                                {isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, cabinSelectedDates[cabin.cabin_id]?.dateFrom || searchCriteria.dateFrom || toLocalDateStr(new Date())) ? '✓ RESERVED' : 'RESERVE NOW'}
+                                                                            </button>
+                                                                            <button
                                                                                 className="sd-more-dates-btn"
                                                                                 onClick={() => setOpenCabinDates(isOpenDates ? null : cabin.cabin_id)}
                                                                             >
@@ -1615,12 +1620,6 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ transform: isOpenDates ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
                                                                                     <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                                                                                 </svg>
-                                                                            </button>
-                                                                            <button
-                                                                                className={`sd-reserve-btn${isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, cabinSelectedDates[cabin.cabin_id]?.dateFrom || searchCriteria.dateFrom || toLocalDateStr(new Date())) ? ' reserved' : ''}`}
-                                                                                onClick={() => handleReserveNow(cabin, selectedShipForCabins!)}
-                                                                            >
-                                                                                {isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, cabinSelectedDates[cabin.cabin_id]?.dateFrom || searchCriteria.dateFrom || toLocalDateStr(new Date())) ? '✓ RESERVED' : 'RESERVE NOW'}
                                                                             </button>
                                                                         </div>
                                                                     </td>
