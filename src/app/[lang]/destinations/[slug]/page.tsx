@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const { lang, slug } = await params;
     const name = slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
     return {
-        title: `${name} - COMODOCRUISE (${LOCALE_NAMES[lang] || "EN"})`,
+        title: `${name} - KOMODOCRUISES (${LOCALE_NAMES[lang] || "EN"})`,
         description: `Discover ${name}, Indonesia — highlights, attractions, and available cruises.`,
     };
 }

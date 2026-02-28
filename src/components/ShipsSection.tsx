@@ -173,8 +173,9 @@ export default function ShipsSection() {
                                             src={ship.imageMain}
                                             alt={ship.name}
                                             fill
+                                            priority={index < 3}
                                             className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                            sizes="270px"
+                                            sizes="(max-width: 640px) 260px, 270px"
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-gradient-to-br from-sky-100 to-sky-200 flex items-center justify-center">
@@ -206,7 +207,7 @@ export default function ShipsSection() {
                                             <span className="text-neutral-400 line-through text-xs mr-1">
                                                 {formatPriceIDR(Math.round(ship.lowestPrice * 1.25))}
                                             </span>
-                                            <span className="font-semibold text-red-600">
+                                            <span className="font-semibold text-emerald-600">
                                                 {formatPriceIDR(ship.lowestPrice)}
                                             </span>
                                             <span className="text-neutral-500"> /cabin</span>

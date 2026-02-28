@@ -14,7 +14,7 @@ export default function FooterSection() {
                 <div className="flex flex-col md:flex-row justify-between items-start mb-8 md:mb-10">
                     <div className="relative w-[140px] md:w-[200px] lg:w-[280px] h-auto flex flex-col justify-center items-start">
                         <h2 className="font-canto text-4xl md:text-5xl lg:text-5xl text-white tracking-widest leading-none">
-                            COMODOCRUISE
+                            KOMODOCRUISES
                         </h2>
                     </div>
                     <div className="hidden md:block w-full max-w-md"></div>
@@ -49,8 +49,8 @@ export default function FooterSection() {
                                 </LocaleLink>
                             </li>
                             <li>
-                                <LocaleLink href="/activities" className="hover:text-white transition-colors">
-                                    {t("nav.activities")}
+                                <LocaleLink href="/experiences" className="hover:text-white transition-colors">
+                                    {t("nav.activities") || "Experiences"}
                                 </LocaleLink>
                             </li>
                             <li>
@@ -97,7 +97,7 @@ export default function FooterSection() {
                 {/* Copyright */}
                 <div className="border-t border-white/20 mt-8 pt-6 text-center">
                     <p className="font-avenir text-sm text-white/60">
-                        © {new Date().getFullYear()} COMODOCRUISE. All rights reserved.
+                        © {new Date().getFullYear()} KOMODOCRUISES. All rights reserved.
                     </p>
                 </div>
             </div>

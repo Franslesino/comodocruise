@@ -1,4 +1,4 @@
-// API Response Types for comodocruise project
+// API Response Types for KOMODOCRUISES project
 
 // Ship from /api/ships
 export interface Ship {

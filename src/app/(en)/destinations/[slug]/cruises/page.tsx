@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const { slug } = await params;
     const name = slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
     return {
-        title: `${name} Cruises - COMODOCRUISE`,
+        title: `${name} Cruises - KOMODOCRUISES`,
         description: `Browse all available liveaboard cruises to ${name}, Indonesia.`,
     };
 }

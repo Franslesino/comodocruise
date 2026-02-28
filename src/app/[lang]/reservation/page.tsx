@@ -12,7 +12,7 @@ export default function ReservationPage() {
     const router = useRouter();
 
     useEffect(() => {
-        const stored = localStorage.getItem("comodocruise_itinerary");
+        const stored = localStorage.getItem("komodocruises_itinerary");
         if (stored) {
             try {
                 setItems(JSON.parse(stored));
@@ -33,7 +33,7 @@ export default function ReservationPage() {
 
     const handleClear = () => {
         setItems([]);
-        localStorage.removeItem("comodocruise_itinerary");
+        localStorage.removeItem("komodocruises_itinerary");
     };
 
     return (

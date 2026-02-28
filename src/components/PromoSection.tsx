@@ -337,8 +337,7 @@ export default function PromoSection() {
                                             </h3>
                                             <div className="text-right flex-shrink-0">
                                                 <span className="text-[11px] text-gray-500 uppercase">From</span>
-                                                <p className="text-sm text-gray-400 line-through">{formatIDR(Math.round(ship.lowestPrice * 1.25))}</p>
-                                                <p className="text-lg font-bold text-red-600">{formatIDR(ship.lowestPrice)}</p>
+                                                <p className="text-lg font-bold text-gray-900">{formatIDR(ship.lowestPrice)}</p>
                                             </div>
                                         </div>
 

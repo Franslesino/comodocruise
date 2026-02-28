@@ -160,7 +160,7 @@ export default function ExperienceSection({ embedded = false }: ExperienceSectio
                             </h2>
                         ) : (
                             <LocaleLink
-                                href="/activities"
+                                href="/experiences"
                                 className="group inline-flex items-center gap-2"
                             >
                                 <h2 className="font-canto text-2xl md:text-3xl text-neutral-900 group-hover:text-neutral-700 transition-colors">
@@ -209,7 +209,7 @@ export default function ExperienceSection({ embedded = false }: ExperienceSectio
                         {experiences.map((exp) => (
                             <LocaleLink
                                 key={exp.id}
-                                href={`/activities#${exp.id}`}
+                                href={`/experiences#${exp.id}`}
                                 data-exp-card
                                 className="group flex-shrink-0 w-[260px] sm:w-[270px]"
                             >

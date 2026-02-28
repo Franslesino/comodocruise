@@ -7,7 +7,7 @@
         "destinations": "Destinations", 
         "ships": "Ships",
         "offers": "Special Offers",
-        "activities": "Activities",
+        "activities": "Experiences",
         "about": "About",
         "contact": "Contact",
         "checkBooking": "Check Booking"
@@ -41,7 +41,7 @@
         "viewAll": "View all"
     },
     "footer": {
-        "brandName": "COMODOCRUISE",
+        "brandName": "KOMODOCRUISES",
         "brandDescription": "Your gateway to extraordinary sea expeditions. Explore pristine waters, encounter amazing marine life, and create memories that last a lifetime.",
         "quickLinks": "Quick Links",
         "contactTitle": "Contact Us"

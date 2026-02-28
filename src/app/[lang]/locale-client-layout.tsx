@@ -41,9 +41,9 @@ export default function LocaleClientLayout({ children, params }: LocaleClientLay
                 // Other pages get Navbar and Footer from layout
                 <>
                     <Navbar />
-                    <div style={{ paddingTop: '80px' }}>
+                    <main>
                         {children}
-                    </div>
+                    </main>
                     <FooterSection />
                 </>
             )}

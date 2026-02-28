@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "About - COMODOCRUISE",
-    description: "Learn about COMODOCRUISE and our commitment to exceptional cruise experiences.",
+    title: "About - KOMODOCRUISES",
+    description: "Learn about KOMODOCRUISES and our commitment to exceptional cruise experiences.",
 };
 
 export default function AboutPage() {
@@ -11,10 +11,10 @@ export default function AboutPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center">
                     <h1 className="text-4xl font-bold text-gray-900 mb-8">
-                        About COMODOCRUISE
+                        About KOMODOCRUISES
                     </h1>
                     <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-                        Learn about COMODOCRUISE and our commitment to exceptional cruise experiences. More content coming soon!
+                        Learn about KOMODOCRUISES and our commitment to exceptional cruise experiences. More content coming soon!
                     </p>
                     
                     <div className="bg-white rounded-xl shadow-lg p-8 max-w-md mx-auto">

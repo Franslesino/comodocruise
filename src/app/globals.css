@@ -155,11 +155,19 @@ body {
   .hero {
     position: relative;
     width: 100%;
-    height: 100svh;
-    min-height: 100svh;
+    height: 85svh;
+    /* Slightly smaller on mobile to show content below */
+    min-height: 85svh;
     overflow: visible;
     display: flex;
     flex-direction: column;
+  }
+
+  @media (min-width: 768px) {
+    .hero {
+      height: 100svh;
+      min-height: 100svh;
+    }
   }
 
   /* Background Video/Image */
@@ -523,30 +531,166 @@ body {
 ======================================== */
 
 @media (max-width: 768px) {
+
+  /* ── Compact horizontal booking bar on mobile ── */
   .booking-bar {
-    flex-direction: column;
-    padding: 16px;
+    flex-direction: row;
+    padding: 8px 10px;
     width: 95%;
-    gap: 12px;
+    gap: 0;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   }
 
   .booking-bar__field {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #e5e7eb;
-    padding: 12px 0;
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    border-right: 1px solid #e5e7eb;
+    border-bottom: none;
+    gap: 1px;
+    width: auto;
   }
 
   .booking-bar__field:last-of-type {
+    border-right: none;
     border-bottom: none;
   }
 
-  .booking-bar__button {
-    width: 100%;
-    padding: 16px;
+  .booking-bar__label {
+    font-size: 8px;
+    letter-spacing: 0.04em;
   }
 
-  .booking-bar--hero {
-    bottom: 24px;
+  .booking-bar__value {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .booking-bar__button {
+    padding: 8px 14px;
+    font-size: 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    width: auto;
+    margin-top: 0;
+  }
+
+  /* Header version — also compact */
+  .booking-bar--header {
+    padding: 6px 8px;
+    gap: 0;
+    max-width: 100%;
+  }
+
+  .booking-bar--header .booking-bar__label {
+    font-size: 7px;
+  }
+
+  .booking-bar--header .booking-bar__value {
+    font-size: 10px;
+  }
+
+  .booking-bar--header .booking-bar__button {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  /* Hide the navbar booking container on mobile */
+  #navbar-booking-container {
+    display: none !important;
+  }
+
+  /* ── DROPDOWN POSITIONING FIX ── */
+  /* .booking-bar is the absolute containing block for all mobile dropdowns */
+  .booking-bar {
+    position: relative;
+    overflow: visible;
+  }
+
+  /* Fields must be static so dropdowns escape up to .booking-bar */
+  .booking-bar__field {
+    position: static !important;
+  }
+
+  /* ── CALENDAR: centered above the booking bar ── */
+  [data-calendar-dropdown="true"] {
+    position: absolute !important;
+    /* Center relative to .booking-bar */
+    left: 50% !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: calc(100% + 8px) !important;
+    transform: translateX(-50%) !important;
+    /* Width: fill viewport minus 32px margin, max 310px */
+    width: calc(100vw - 32px) !important;
+    max-width: 310px !important;
+    max-height: 70vh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 16px;
+    z-index: 9999 !important;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25) !important;
+    /* Reset any Tailwind translate that might conflict */
+    --tw-translate-x: 0 !important;
+    --tw-translate-y: 0 !important;
+  }
+
+  /* ── OTHER DROPDOWNS (guest, destination, duration) ── */
+  .booking-bar__field .absolute {
+    position: absolute !important;
+    left: 50% !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: calc(100% + 4px) !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 32px) !important;
+    max-width: 320px !important;
+    max-height: 60vh !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* ── SINGLE MONTH VIEW ON MOBILE ── */
+  /* Switch to 1 month on mobile */
+  .booking-bar__field .grid.grid-cols-2 {
+    grid-template-columns: 1fr !important;
+    width: 100%;
+    gap: 0 !important;
+  }
+
+  /* Hide second month */
+  .booking-bar__field .grid.grid-cols-2>div:nth-child(2) {
+    display: none;
+  }
+
+  /* Center month name header */
+  .booking-bar__field .flex.gap-12 {
+    justify-content: center;
+    padding: 0;
+  }
+
+  /* Hide second month name */
+  .booking-bar__field .flex.gap-12>span:nth-child(2) {
+    display: none;
+  }
+
+  /* Compact day buttons */
+  .booking-bar__field .grid.grid-cols-7 button,
+  .booking-bar__field .grid.grid-cols-7 div {
+    padding: 4px 2px !important;
+    font-size: 11px !important;
+  }
+
+  /* Destination dropdown width */
+  .booking-bar__field .w-80 {
+    width: 100% !important;
   }
 }

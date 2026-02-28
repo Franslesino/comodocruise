@@ -15,7 +15,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const { lang } = await params;
     return {
-        title: `Experiences & Activities - COMODOCRUISE - ${LOCALE_NAMES[lang]}`,
+        title: `Experiences & Activities - KOMODOCRUISES - ${LOCALE_NAMES[lang]}`,
         description: "Discover 12+ unforgettable experiences on our Indonesian liveaboard cruises.",
     };
 }

@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
+import { createPortal } from "react-dom";
+
 import Image from "next/image";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import LocaleLink from "./LocaleLink";
@@ -28,6 +30,7 @@ import {
 } from "@/types/api";
 import "@/styles/results.css";
 import "@/styles/cruises.css";
+import "@/styles/ship-detail.css";
 
 // Sort options
 const SORT_OPTIONS = [
@@ -53,7 +56,7 @@ const createDynamicShipFromAvailability = (op: OperatorAvailabilityWithDates): S
         description: `${apiCabin.available} cabins available`,
         total_capacity: apiCabin.available,
         price: 0,
-        image_main: "/placeholder-cabin.jpg",
+        image_main: "/placeholder-cabin.svg",
         facilities: {
             balcony: apiCabin.name.toLowerCase().includes("balcony"),
             bathtub: apiCabin.name.toLowerCase().includes("bathtub"),
@@ -144,6 +147,10 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
     const dateDropdownRef = useRef<HTMLDivElement>(null);
     const durationDropdownRef = useRef<HTMLDivElement>(null);
     const guestsDropdownRef = useRef<HTMLDivElement>(null);
+    const filterToggleRef = useRef<HTMLButtonElement>(null);
+
+    // Floating FAB visibility
+    const [showFilterFAB, setShowFilterFAB] = useState(false);
 
     // Ship/cabin view state
     const [selectedShipForCabins, setSelectedShipForCabins] = useState<string | null>(searchParams.get("ship"));
@@ -249,9 +256,18 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                     const endDate = new Date(today);
                     endDate.setDate(endDate.getDate() + 90);
                     const defaultTo = toLocalDateStr(endDate);
+
+                    // Do actual weekly sampling to limit API calls (e.g. 13 calls instead of 90)
+                    const sampleDates: string[] = [];
+                    for (let i = 0; i < 90; i += 7) {
+                        const d = new Date(today);
+                        d.setDate(d.getDate() + i);
+                        sampleDates.push(toLocalDateStr(d));
+                    }
+
                     try {
-                        availableOperators = await fetchAndAggregateAvailability(defaultFrom, defaultTo);
-                        console.log(`[SearchResults] Browse mode: fetched availability for ${defaultFrom} to ${defaultTo}, found ${availableOperators.size} operators`);
+                        availableOperators = await fetchAndAggregateAvailability(defaultFrom, defaultTo, sampleDates);
+                        console.log(`[SearchResults] Browse mode: fetched availability for ${sampleDates.length} sampled dates, found ${availableOperators.size} operators`);
                     } catch (err) {
                         console.warn("[SearchResults] Failed to fetch browse-mode availability:", err);
                     }
@@ -369,7 +385,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
 
     // Load itinerary from localStorage
     useEffect(() => {
-        const stored = localStorage.getItem("comodocruise_itinerary");
+        const stored = localStorage.getItem("KOMODOCRUISES_itinerary");
         if (stored) {
             try { setItineraryItems(JSON.parse(stored)); } catch { }
         }
@@ -418,6 +434,24 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    // Show navbar filter pill when the static "Filters & Sort" button scrolls out of view (mobile only)
+    useEffect(() => {
+        const btn = filterToggleRef.current;
+        if (!btn) return;
+
+        // offsetTop gives the button's natural position in the document
+        // (unaffected by sticky), so we compare with window.scrollY
+        const naturalBottom = btn.offsetTop + btn.offsetHeight;
+
+        const checkFAB = () => {
+            setShowFilterFAB(window.scrollY > naturalBottom);
+        };
+
+        window.addEventListener("scroll", checkFAB, { passive: true });
+        checkFAB(); // run once on mount
+        return () => window.removeEventListener("scroll", checkFAB);
+    }, [loading]);
 
     // Sort and filter ships
     const sortedShips = [...ships]
@@ -471,7 +505,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
         if (cached && cached.length > 0) return cached;
         const images: string[] = [];
         if (cabin.image_main) images.push(cabin.image_main);
-        return images.length > 0 ? images : ["/placeholder-cabin.jpg"];
+        return images.length > 0 ? images : ["/placeholder-cabin.svg"];
     };
 
     const getShipGalleryImages = (ship: ShipWithDetails): string[] => {
@@ -605,7 +639,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
     const removeFromItinerary = (index: number) => {
         const updated = itineraryItems.filter((_, i) => i !== index);
         setItineraryItems(updated);
-        localStorage.setItem("comodocruise_itinerary", JSON.stringify(updated));
+        localStorage.setItem("KOMODOCRUISES_itinerary", JSON.stringify(updated));
     };
 
     // Guest modal
@@ -638,7 +672,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
             };
             const updated = [...itineraryItems, newItem];
             setItineraryItems(updated);
-            localStorage.setItem("comodocruise_itinerary", JSON.stringify(updated));
+            localStorage.setItem("KOMODOCRUISES_itinerary", JSON.stringify(updated));
         }
         closeGuestModal();
         setOpenCabinDates(null);
@@ -653,7 +687,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                 !(it.cabin === cabin.cabin_name && it.ship === shipName && it.date === date)
             );
             setItineraryItems(updated);
-            localStorage.setItem("comodocruise_itinerary", JSON.stringify(updated));
+            localStorage.setItem("KOMODOCRUISES_itinerary", JSON.stringify(updated));
         } else {
             openGuestModal(cabin, shipName, date);
         }
@@ -840,7 +874,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
         <div className={showHero ? "cruises-page" : "results-wrap"}>
             {/* Hero Section (only on cruises page) */}
             {showHero && (
-                <div className="cruises-hero">
+                <div id="hero-section" className="cruises-hero">
                     <video
                         className="cruises-hero__video"
                         autoPlay
@@ -859,7 +893,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                         <nav className="cruises-hero-breadcrumb">
                             <LocaleLink href="/" className="cruises-bc-link">Home</LocaleLink>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="cruises-bc-sep"><polyline points="9 18 15 12 9 6" /></svg>
-                            <span className="cruises-bc-curr">Cruises</span>
+                            <span className="cruises-bc-curr">Results</span>
                         </nav>
 
                         <div className="cruises-hero-eyebrow">Sail The Extraordinary</div>
@@ -902,11 +936,32 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                     </div>
                 ) : (
                     <div className="results-layout-horizontal">
-                        {/* Mobile sidebar toggle */}
-                        <button className="sidebar-mobile-toggle" onClick={() => setSidebarOpen(true)}>
+                        {/* Mobile sidebar toggle (top, always visible) */}
+                        <button
+                            ref={filterToggleRef}
+                            className="sidebar-mobile-toggle"
+                            onClick={() => setSidebarOpen(true)}
+                        >
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
                             Filters &amp; Sort
                         </button>
+
+                        {/* Filter button portal into navbar when scrolled */}
+                        {showFilterFAB && typeof document !== "undefined" && document.getElementById("navbar-filter-slot") &&
+                            createPortal(
+                                <button
+                                    className="navbar-filter-pill"
+                                    onClick={() => setSidebarOpen(true)}
+                                    aria-label="Open Filters"
+                                >
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                    </svg>
+                                    Filters &amp; Sort
+                                </button>,
+                                document.getElementById("navbar-filter-slot")!
+                            )
+                        }
 
                         {/* Mobile overlay */}
                         {sidebarOpen && <div className="sidebar-mobile-overlay sidebar-overlay-open" onClick={() => setSidebarOpen(false)} />}
@@ -1226,6 +1281,9 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                                             style={{ objectFit: "cover" }}
                                                             unoptimized
                                                             referrerPolicy="no-referrer"
+                                                            priority={shipIndex < 4}
+                                                            fetchPriority={shipIndex < 4 ? "high" : "auto"}
+                                                            sizes="(max-width: 900px) 100vw, 30vw"
                                                         />
                                                         {/* Carousel Navigation - Only show if multiple images */}
                                                         {shipImages.length > 1 && (
@@ -1332,7 +1390,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                                             <rect x="5" y="8" width="14" height="7" rx="1" />
                                                             <path d="M8 8V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3" />
                                                         </svg>
-                                                        <span>COMODOCRUISE</span>
+                                                        <span>KOMODOCRUISES</span>
                                                     </div>
                                                 </div>
 
@@ -1373,14 +1431,18 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
 
                                                     {/* Brand Logo */}
                                                     <div className="brand-logo">
-                                                        <span style={{ fontWeight: 700, color: '#12214a', fontSize: '0.9rem', letterSpacing: '0.5px' }}>COMODOCRUISE</span>
+                                                        <span style={{ fontWeight: 700, color: '#12214a', fontSize: '0.9rem', letterSpacing: '0.5px' }}>KOMODOCRUISES</span>
                                                     </div>
 
                                                     {/* Action Buttons */}
                                                     <button className="btn-view-deal" onClick={() => handleViewCabins(ship.name)}>
                                                         View Cabins
                                                     </button>
-                                                    <button className="btn-cruise-details" onClick={() => handleViewCabins(ship.name)}>
+                                                    <button className="btn-cruise-details" onClick={() => {
+                                                        const slug = ship.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                                                        const locale = getLocaleFromPathname(pathname);
+                                                        router.push(localizePath(`/cruises/${slug}`, locale));
+                                                    }}>
                                                         Cruise Details
                                                     </button>
                                                 </div>
@@ -1419,251 +1481,205 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                             </span>
                                         </div>
 
-                                        <div className="cabin-cards-list">
-                                            {getSelectedShip()?.cabins.map((cabin, idx) => {
-                                                const cabinImages = getCabinGalleryImages(cabin);
-                                                const currentCabinImageIndex = cabinImageIndices[cabin.cabin_id] || 0;
+                                        {/* ===== CABIN TABLE (matches ShipDetail availability style) ===== */}
+                                        <div className="sd-cabins-table">
+                                            <table className="sd-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th className="sd-th-image">Room Photos</th>
+                                                        <th>Room Types</th>
+                                                        <th className="sd-th-center">Max</th>
+                                                        <th className="sd-th-right">Rates (per cabin)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {getSelectedShip()?.cabins.map((cabin, idx) => {
+                                                        const cabinImages = getCabinGalleryImages(cabin);
+                                                        const currentCabinImageIndex = cabinImageIndices[cabin.cabin_id] || 0;
+                                                        const cabinAvailDates = getAvailableDatesForCabin(cabin);
+                                                        const isOpenDates = openCabinDates === cabin.cabin_id;
+                                                        const selectedShip = getSelectedShip();
+                                                        const tripNights = Math.max(1, (parseInt(selectedShip?.trip || '3', 10) || 3) - 1);
 
-                                                return (
-                                                    <div key={idx} className="cabin-card-wrapper">
-                                                        <div className="cabin-card-body">
-                                                            <div className="cabin-card-image" onClick={() => openCabinDetail(cabin)}>
-                                                                <Image
-                                                                    src={getDirectImageUrl(cabinImages[currentCabinImageIndex])}
-                                                                    alt={cabin.cabin_name}
-                                                                    fill
-                                                                    style={{ objectFit: "cover", cursor: "pointer" }}
-                                                                    unoptimized
-                                                                    referrerPolicy="no-referrer"
-                                                                />
-                                                                {/* Carousel Navigation - Only show if multiple images */}
-                                                                {cabinImages.length > 1 && (
-                                                                    <>
-                                                                        <button
-                                                                            className="carousel-nav carousel-prev"
-                                                                            onClick={(e) => handleCabinPrevImage(cabin.cabin_id, e)}
-                                                                            aria-label="Previous cabin image"
-                                                                        >
-                                                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                                <polyline points="15 18 9 12 15 6" />
-                                                                            </svg>
-                                                                        </button>
-                                                                        <button
-                                                                            className="carousel-nav carousel-next"
-                                                                            onClick={(e) => handleCabinNextImage(cabin.cabin_id, e)}
-                                                                            aria-label="Next cabin image"
-                                                                        >
-                                                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                                <polyline points="9 6 15 12 9 18" />
-                                                                            </svg>
-                                                                        </button>
-                                                                        {/* Image counter */}
-                                                                        <div className="image-counter">
-                                                                            {currentCabinImageIndex + 1} / {cabinImages.length}
-                                                                        </div>
-                                                                    </>
-                                                                )}
-                                                            </div>
-
-                                                            <div className="cabin-card-content-top">
-                                                                <div className="cabin-header-row">
-                                                                    <h4 className="cabin-title">
-                                                                        {cabin.cabin_name} ({(() => {
-                                                                            const basePax = Math.max(1, (cabin.total_capacity || 2) - 1);
-                                                                            const extraPax = 1;
-                                                                            return `${basePax} pax + ${extraPax}`;
-                                                                        })()})
-                                                                    </h4>
-                                                                    <div className="cabin-capacity-badge">
-                                                                        {(() => {
-                                                                            const basePax = Math.max(1, (cabin.total_capacity || 2) - 1);
-                                                                            const extraPax = 1;
-                                                                            return (
-                                                                                <>
-                                                                                    {Array(basePax).fill(0).map((_, i) => (
-                                                                                        <svg key={`base-${i}`} width="16" height="16" viewBox="0 0 24 24" fill="#12214a">
-                                                                                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                                                                                        </svg>
-                                                                                    ))}
-                                                                                    <span className="capacity-plus">+</span>
-                                                                                    {Array(extraPax).fill(0).map((_, i) => (
-                                                                                        <svg key={`extra-${i}`} width="14" height="14" viewBox="0 0 24 24" fill="#6b7280">
-                                                                                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                                                                                        </svg>
-                                                                                    ))}
-                                                                                </>
-                                                                            );
-                                                                        })()}
-                                                                    </div>
-                                                                </div>
-
-                                                                <span className="cabin-type-badge">
-                                                                    {cabin.facilities?.balcony ? "Room with balcony" : "Standard Room"}
-                                                                </span>
-
-                                                                <div className="cabin-info-row">
-                                                                    <div className="cabin-info-item">
-                                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                                                            <line x1="9" y1="3" x2="9" y2="21" />
-                                                                        </svg>
-                                                                        <span>Size: 36 sqm</span>
-                                                                    </div>
-                                                                    <div className="cabin-info-item">
-                                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                                                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                                                                        </svg>
-                                                                        <span>Max Adults: {cabin.total_capacity || 2}</span>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="cabin-info-row">
-                                                                    <div className="cabin-info-item">
-                                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                                                                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                                                                        </svg>
-                                                                        <span>Bed options: {cabin.facilities?.large_bed ? "Double Bed or 2 Beds" : "Double Bed or 2 Beds"}</span>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="cabin-extra-beds">
-                                                                    <strong>Extra beds available:</strong>
-                                                                    <ul>
-                                                                        <li>• Rollaway bed</li>
-                                                                        <li>• Crib</li>
-                                                                    </ul>
-                                                                </div>
-
-                                                                <button className="cabin-show-more-btn" onClick={() => openCabinDetail(cabin)}>
-                                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                                                                        <circle cx="12" cy="12" r="10" />
-                                                                        <line x1="12" y1="16" x2="12" y2="12" />
-                                                                        <line x1="12" y1="8" x2="12.01" y2="8" />
-                                                                    </svg>
-                                                                    Show more
-                                                                </button>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="cabin-card-bottom">
-                                                            <div className="cabin-date-row">
-                                                                <span className="cabin-date-text">
-                                                                    {(() => {
-                                                                        const cabinDates = getAvailableDatesForCabin(cabin);
-                                                                        const firstDate = cabinDates.length > 0 ? cabinDates[0] : null;
-                                                                        const selectedShip = getSelectedShip();
-                                                                        const tripDays = selectedShip ? (parseInt(selectedShip.trip, 10) || 3) : 3;
-                                                                        const tripNights = tripDays - 1;
-                                                                        const dateFrom = cabinSelectedDates[cabin.cabin_id]?.dateFrom || firstDate || searchCriteria.dateFrom;
-                                                                        let dateTo = cabinSelectedDates[cabin.cabin_id]?.dateTo;
-                                                                        if (!dateTo && dateFrom) {
-                                                                            const d = new Date(dateFrom);
-                                                                            d.setDate(d.getDate() + tripNights);
-                                                                            dateTo = toLocalDateStr(d);
-                                                                        }
-                                                                        return `${formatDateDisplay(dateFrom)} - ${formatDateDisplay(dateTo || dateFrom)}`;
-                                                                    })()}
-                                                                </span>
-                                                                <span className="cabin-availability-badge">
-                                                                    {getAvailableDatesForCabin(cabin).length} dates
-                                                                </span>
-                                                            </div>
-
-                                                            {/* More Dates Dropdown */}
-                                                            {openCabinDates === cabin.cabin_id && (
-                                                                <div className="more-dates-dropdown" ref={cabinDatesDropdownRef} onClick={e => e.stopPropagation()}>
-                                                                    {(() => {
-                                                                        const cabinDates = getAvailableDatesForCabin(cabin);
-                                                                        const selectedShip = getSelectedShip();
-                                                                        const tripDays = selectedShip ? (parseInt(selectedShip.trip, 10) || 3) : 3;
-                                                                        const tripNights = tripDays - 1;
-                                                                        if (cabinDates.length === 0) {
-                                                                            return <div className="no-dates-msg">No available dates found</div>;
-                                                                        }
-                                                                        const maxDatesToShow = searchCriteria.dateFrom ? 5 : 10;
-                                                                        return cabinDates.slice(0, maxDatesToShow).map((date, dateIdx) => {
-                                                                            const startDate = new Date(date);
-                                                                            const endDate = new Date(date);
-                                                                            endDate.setDate(endDate.getDate() + tripNights);
-                                                                            const isReserved = isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, date);
-                                                                            return (
-                                                                                <div key={dateIdx} className={`trip-option-alt ${isReserved ? "trip-reserved" : ""}`}>
-                                                                                    <div className="trip-alt-info">
-                                                                                        <span className="trip-alt-date">
-                                                                                            {startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                                                                                            {" - "}
-                                                                                            {endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                                                                                        </span>
-                                                                                        <span className="trip-alt-rooms">1 cabin</span>
-                                                                                    </div>
-                                                                                    {isReserved ? (
-                                                                                        <span className="trip-reserved-label">
-                                                                                            <span className="reserved-check-small">✓</span> RESERVED
-                                                                                        </span>
-                                                                                    ) : (
+                                                        return (
+                                                            <Fragment key={cabin.cabin_id || idx}>
+                                                                <tr className="sd-cabin-row">
+                                                                    {/* -- Photo column -- */}
+                                                                    <td className="sd-cabin-image-cell">
+                                                                        <div className="sd-cabin-carousel">
+                                                                            <div className="sd-cabin-carousel-img-wrapper">
+                                                                                <Image
+                                                                                    src={getDirectImageUrl(cabinImages[currentCabinImageIndex])}
+                                                                                    alt={cabin.cabin_name}
+                                                                                    width={280}
+                                                                                    height={200}
+                                                                                    className="sd-cabin-carousel-img"
+                                                                                    unoptimized
+                                                                                />
+                                                                                {cabinImages.length > 1 && (
+                                                                                    <>
                                                                                         <button
-                                                                                            className="trip-select-action"
-                                                                                            style={{ background: "none", border: "none", cursor: "pointer" }}
-                                                                                            onClick={() => {
-                                                                                                const calculatedDateTo = toLocalDateStr(endDate);
-                                                                                                setCabinSelectedDates(prev => ({
-                                                                                                    ...prev,
-                                                                                                    [cabin.cabin_id]: { dateFrom: date, dateTo: calculatedDateTo },
-                                                                                                }));
-                                                                                                setOpenCabinDates(null);
-                                                                                            }}
+                                                                                            className="sd-cabin-carousel-btn sd-cabin-carousel-btn-prev"
+                                                                                            onClick={(e) => handleCabinPrevImage(cabin.cabin_id, e)}
+                                                                                            aria-label="Previous image"
                                                                                         >
-                                                                                            SELECT
+                                                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                                                                                         </button>
-                                                                                    )}
-                                                                                </div>
-                                                                            );
-                                                                        });
-                                                                    })()}
-                                                                    <button className="less-dates-toggle" onClick={() => setOpenCabinDates(null)}>
-                                                                        <span>LESS DATES</span>
-                                                                        <span className="toggle-arrow expanded">▼</span>
-                                                                    </button>
-                                                                </div>
-                                                            )}
+                                                                                        <button
+                                                                                            className="sd-cabin-carousel-btn sd-cabin-carousel-btn-next"
+                                                                                            onClick={(e) => handleCabinNextImage(cabin.cabin_id, e)}
+                                                                                            aria-label="Next image"
+                                                                                        >
+                                                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                                                                        </button>
+                                                                                        <div className="sd-cabin-carousel-dots">
+                                                                                            {cabinImages.map((_, imgIdx) => (
+                                                                                                <button
+                                                                                                    key={imgIdx}
+                                                                                                    className={`sd-cabin-carousel-dot ${imgIdx === currentCabinImageIndex ? 'active' : ''}`}
+                                                                                                    onClick={(e) => { e.stopPropagation(); setCabinImageIndices(prev => ({ ...prev, [cabin.cabin_id]: imgIdx })); }}
+                                                                                                    aria-label={`Go to image ${imgIdx + 1}`}
+                                                                                                />
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    </>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
 
-                                                            <div className="cabin-footer">
-                                                                <div className="cabin-price-info">
-                                                                    <span className="cabin-price-label">FROM</span>
-                                                                    <span className="cabin-price-value">
-                                                                        {formatPrice(cabin.price || getSelectedShip()?.startFromPrice || 0)}
-                                                                    </span>
-                                                                    <span className="cabin-price-note">per person, per night</span>
-                                                                </div>
-                                                                <div className="cabin-action-buttons">
-                                                                    <button
-                                                                        className="btn-more-dates"
-                                                                        onClick={() => setOpenCabinDates(openCabinDates === cabin.cabin_id ? null : cabin.cabin_id)}
-                                                                    >
-                                                                        MORE DATES
-                                                                    </button>
-                                                                    <button
-                                                                        className={`btn-reserve-now ${isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, cabinSelectedDates[cabin.cabin_id]?.dateFrom || searchCriteria.dateFrom || toLocalDateStr(new Date())) ? "btn-reserved" : ""}`}
-                                                                        onClick={() => handleReserveNow(cabin, selectedShipForCabins!)}
-                                                                    >
-                                                                        {isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, cabinSelectedDates[cabin.cabin_id]?.dateFrom || searchCriteria.dateFrom || toLocalDateStr(new Date())) ? (
-                                                                            <>
-                                                                                <span className="reserved-check">
-                                                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ verticalAlign: "text-bottom" }}>
-                                                                                        <polyline points="20 6 9 17 4 12" />
-                                                                                    </svg>
+                                                                    {/* -- Room Types column -- */}
+                                                                    <td className="sd-cabin-info-cell">
+                                                                        <div className="sd-cabin-info-content">
+                                                                            <h4 className="sd-cabin-name">{cabin.cabin_name}</h4>
+                                                                            {cabin.facilities?.balcony && (
+                                                                                <span className="sd-cabin-badge">
+                                                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M3 21h18M5 21V9l7-4 7 4v12M9 21v-4h6v4" /></svg>
+                                                                                    Room with balcony
                                                                                 </span>
-                                                                                RESERVED
-                                                                            </>
-                                                                        ) : "RESERVE NOW"}
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
+                                                                            )}
+                                                                            <div className="sd-cabin-details">
+                                                                                <div className="sd-detail-item">
+                                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="3" y="3" width="18" height="18" rx="2" /></svg>
+                                                                                    <span><strong>Size:</strong> 36 sqm</span>
+                                                                                </div>
+                                                                                <div className="sd-detail-item">
+                                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
+                                                                                    <span><strong>Max Adults:</strong> {cabin.total_capacity || 2}</span>
+                                                                                </div>
+                                                                                <div className="sd-detail-item">
+                                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="3" y="11" width="18" height="11" rx="2" /></svg>
+                                                                                    <span><strong>Bed options:</strong> {cabin.facilities?.large_bed ? 'King Bed or 2 Twins' : 'Double Bed or 2 Beds'}</span>
+                                                                                </div>
+                                                                                <div className="sd-detail-item">
+                                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+                                                                                    <span><strong>Extra beds available:</strong></span>
+                                                                                </div>
+                                                                                <ul className="sd-extra-beds-list">
+                                                                                    <li>● Rollaway bed</li>
+                                                                                    <li>● Crib</li>
+                                                                                </ul>
+                                                                            </div>
+                                                                            <button className="sd-show-more-link" onClick={() => openCabinDetail(cabin)}>
+                                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
+                                                                                Show more
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+
+                                                                    {/* -- Max column -- */}
+                                                                    <td className="sd-max-cell">
+                                                                        <div className="sd-guest-icons">
+                                                                            {Array(cabin.total_capacity || 2).fill(0).map((_, i) => (
+                                                                                <svg key={i} width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                                                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                                                                </svg>
+                                                                            ))}
+                                                                        </div>
+                                                                        <div className="sd-plus-icon">+</div>
+                                                                    </td>
+
+                                                                    {/* -- Rates column -- */}
+                                                                    <td className="sd-price-cell">
+                                                                        <div className="sd-price-info-new">
+                                                                            <div className="sd-choose-dates-notice">
+                                                                                {cabinAvailDates.length > 0 ? `${cabinAvailDates.length} dates available` : 'No dates available'}
+                                                                            </div>
+                                                                            <span className="sd-price-amount-new">{formatPrice(cabin.price || selectedShip?.startFromPrice || 0)}</span>
+                                                                            <span className="sd-price-per-night">per person / night</span>
+                                                                            <button
+                                                                                className="sd-more-dates-btn"
+                                                                                onClick={() => setOpenCabinDates(isOpenDates ? null : cabin.cabin_id)}
+                                                                            >
+                                                                                {isOpenDates ? 'LESS DATES' : 'MORE DATES'}
+                                                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ transform: isOpenDates ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+                                                                                    <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                </svg>
+                                                                            </button>
+                                                                            <button
+                                                                                className={`sd-reserve-btn${isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, cabinSelectedDates[cabin.cabin_id]?.dateFrom || searchCriteria.dateFrom || toLocalDateStr(new Date())) ? ' reserved' : ''}`}
+                                                                                onClick={() => handleReserveNow(cabin, selectedShipForCabins!)}
+                                                                            >
+                                                                                {isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, cabinSelectedDates[cabin.cabin_id]?.dateFrom || searchCriteria.dateFrom || toLocalDateStr(new Date())) ? '✓ RESERVED' : 'RESERVE NOW'}
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+
+                                                                {/* Available Dates expandable row */}
+                                                                {isOpenDates && (
+                                                                    <tr className="sd-dates-row">
+                                                                        <td colSpan={4} className="sd-dates-cell">
+                                                                            <div className="sd-dates-container" ref={cabinDatesDropdownRef}>
+                                                                                {cabinAvailDates.length === 0 ? (
+                                                                                    <div className="sd-no-dates">No available dates found</div>
+                                                                                ) : (
+                                                                                    <div className="sd-dates-list sd-dates-list-desktop">
+                                                                                        {cabinAvailDates.slice(0, 10).map((date, dateIdx) => {
+                                                                                            const startDate = new Date(date);
+                                                                                            const endDate = new Date(date);
+                                                                                            endDate.setDate(endDate.getDate() + tripNights);
+                                                                                            const isReserved = isCabinInItinerary(cabin.cabin_name, selectedShipForCabins!, date);
+                                                                                            return (
+                                                                                                <div key={dateIdx} className="sd-date-option-detailed">
+                                                                                                    <div className="sd-date-option-left">
+                                                                                                        <div className="sd-date-departure-info">
+                                                                                                            <span className="sd-date-range-detailed">
+                                                                                                                {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                                                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ margin: '0 0.5rem' }}><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                                                                                                {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                                                                            </span>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div className="sd-date-option-right">
+                                                                                                        {isReserved ? (
+                                                                                                            <span style={{ color: '#12214a', fontWeight: 700 }}>✓ RESERVED</span>
+                                                                                                        ) : (
+                                                                                                            <button
+                                                                                                                className="sd-select-date-btn"
+                                                                                                                onClick={() => {
+                                                                                                                    setCabinSelectedDates(prev => ({ ...prev, [cabin.cabin_id]: { dateFrom: date, dateTo: toLocalDateStr(endDate) } }));
+                                                                                                                    setOpenCabinDates(null);
+                                                                                                                }}
+                                                                                                            >
+                                                                                                                SELECT
+                                                                                                            </button>
+                                                                                                        )}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            );
+                                                                                        })}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                )}
+                                                            </Fragment>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
@@ -1857,7 +1873,7 @@ export default function SearchResults({ showHero = false }: SearchResultsProps) 
                                 <div className="itinerary-footer-actions">
                                     <button className="itinerary-btn-clear" onClick={() => {
                                         setItineraryItems([]);
-                                        localStorage.removeItem("comodocruise_itinerary");
+                                        localStorage.removeItem("KOMODOCRUISES_itinerary");
                                     }}>Clear All</button>
                                     <button className="itinerary-btn-checkout" onClick={() => {
                                         setShowItineraryPanel(false);

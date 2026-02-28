@@ -196,7 +196,7 @@ export default function DestinationSection() {
                 </div>
 
                 {/* Main Layout: Large Card Left + Ships Panel Right */}
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-0 sm:gap-6 items-stretch bg-white sm:bg-transparent rounded-2xl shadow-lg sm:shadow-none overflow-hidden sm:overflow-visible">
 
                     {/* LEFT — Large Destination Card (3 cols) */}
                     <div className="lg:col-span-3">
@@ -204,9 +204,9 @@ export default function DestinationSection() {
                             href={`/destinations/${activeDest.slug}`}
                             className="group block h-full"
                         >
-                            <div className="relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 h-full flex flex-col">
+                            <div className="relative bg-white sm:rounded-2xl overflow-hidden sm:shadow-lg sm:hover:shadow-2xl transition-all duration-500 h-full flex flex-col border-b sm:border-b-0 border-gray-100">
                                 {/* Big Image */}
-                                <div className="relative w-full aspect-[16/10] lg:aspect-auto lg:flex-1 min-h-[320px] overflow-hidden">
+                                <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] lg:aspect-auto lg:flex-1 min-h-[250px] sm:min-h-[320px] overflow-hidden">
                                     <Image
                                         src={activeDest.image}
                                         alt={activeDest.name}
@@ -215,35 +215,46 @@ export default function DestinationSection() {
                                         sizes="(max-width: 1024px) 100vw, 60vw"
                                         priority
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
 
                                     {/* Category Badge */}
-                                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm">
+                                    <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md text-gray-900 px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-md">
                                         {activeDest.category}
                                     </div>
 
                                     {/* Rating Badge */}
-                                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold shadow-sm flex items-center gap-1">
-                                        <StarIcon className="w-3.5 h-3.5 text-yellow-400" />
+                                    <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-bold shadow-md flex items-center gap-1.5">
+                                        <StarIcon className="w-3.5 h-3.5 text-amber-400" />
                                         {activeDest.rating}
+                                    </div>
+
+                                    {/* Mobile Title Overlay (Hidden on Desktop) */}
+                                    <div className="absolute bottom-4 left-4 right-4 sm:hidden">
+                                        <h3 className="text-2xl font-black text-white drop-shadow-md mb-1">
+                                            {activeDest.name}
+                                        </h3>
+                                        <div className="flex items-center gap-1 text-white/90 text-xs drop-shadow">
+                                            <MapPinIcon className="w-3.5 h-3.5" />
+                                            {activeDest.location}
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Bottom Info */}
-                                <div className="p-6">
-                                    <div className="flex items-center gap-1 text-gray-500 text-sm mb-2">
+                                {/* Bottom Info (Desktop only or slightly different on mobile) */}
+                                <div className="p-5 sm:p-6">
+                                    <div className="hidden sm:flex items-center gap-1 text-gray-500 text-sm mb-2">
                                         <MapPinIcon className="w-4 h-4" />
                                         {activeDest.location}
                                     </div>
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                    <h3 className="hidden sm:block text-2xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                                         {activeDest.name}
                                     </h3>
-                                    <p className="text-gray-600 text-sm leading-relaxed mb-3">
+                                    <p className="text-gray-600 text-[13px] sm:text-sm leading-relaxed mb-4">
                                         {activeDest.description}
                                     </p>
                                     <div className="flex flex-wrap gap-1.5">
                                         {activeDest.highlights.map((h, i) => (
-                                            <span key={i} className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">
+                                            <span key={i} className="text-[11px] sm:text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium border border-blue-100">
                                                 {h}
                                             </span>
                                         ))}
@@ -255,17 +266,17 @@ export default function DestinationSection() {
 
                     {/* RIGHT — Set Sail Panel (2 cols) */}
                     <div className="lg:col-span-2">
-                        <div className="bg-white rounded-2xl shadow-lg p-5 h-full flex flex-col">
+                        <div className="bg-white sm:rounded-2xl sm:shadow-lg p-5 sm:p-6 h-full flex flex-col">
                             {/* Panel Header */}
-                            <div className="flex items-center justify-between mb-5">
-                                <h3 className="text-lg font-bold text-gray-900">
+                            <div className="flex items-center justify-between mb-4 sm:mb-5">
+                                <h3 className="text-base sm:text-lg font-bold text-gray-900">
                                     Set Sail to {activeDest.name}
                                 </h3>
                                 <LocaleLink
                                     href={`/destinations/${activeDest.slug}/cruises`}
-                                    className="text-gray-400 hover:text-blue-600 transition-colors"
+                                    className="text-gray-400 hover:text-blue-600 transition-colors p-1"
                                 >
-                                    <ArrowRightIcon className="w-5 h-5" />
+                                    <ArrowRightIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                                 </LocaleLink>
                             </div>
 
@@ -326,33 +337,33 @@ export default function DestinationSection() {
                                         </div>
 
                                         {/* Bottom Row: Facilities + Price */}
-                                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
+                                        <div className="flex flex-col sm:flex-row sm:items-end justify-between mt-3 pt-3 border-t border-gray-200 gap-3">
                                             {/* Facilities */}
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 flex-wrap">
                                                 {ship.facilities?.hasSeaview && (
-                                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Sea View</span>
+                                                    <span className="text-[10px] sm:text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Sea View</span>
                                                 )}
                                                 {ship.facilities?.hasBalcony && (
-                                                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Balcony</span>
+                                                    <span className="text-[10px] sm:text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Balcony</span>
                                                 )}
                                                 {ship.facilities?.hasBathtub && (
-                                                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Bathtub</span>
+                                                    <span className="text-[10px] sm:text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Bathtub</span>
                                                 )}
                                             </div>
 
                                             {/* Price + CTA */}
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-end justify-between sm:justify-end w-full sm:w-auto gap-3">
                                                 {ship.lowestPrice && ship.lowestPrice > 0 && (
-                                                    <div className="text-right">
-                                                        <p className="text-xs text-gray-500">From</p>
-                                                        <p className="text-xs text-gray-400 line-through">
+                                                    <div className="text-left sm:text-right">
+                                                        <p className="block text-[9px] sm:text-[10px] text-gray-400 uppercase tracking-wide">From</p>
+                                                        <p className="block text-[10px] sm:text-xs text-gray-400 line-through">
                                                             {new Intl.NumberFormat('id-ID', {
                                                                 style: 'currency',
                                                                 currency: 'IDR',
                                                                 maximumFractionDigits: 0,
                                                             }).format(Math.round(ship.lowestPrice * 1.25))}
                                                         </p>
-                                                        <p className="text-sm font-bold text-red-600">
+                                                        <p className="text-sm sm:text-base font-bold text-emerald-600">
                                                             {new Intl.NumberFormat('id-ID', {
                                                                 style: 'currency',
                                                                 currency: 'IDR',
@@ -363,7 +374,7 @@ export default function DestinationSection() {
                                                 )}
                                                 <LocaleLink
                                                     href={`/cruises/${ship.slug}`}
-                                                    className="px-4 py-1.5 bg-amber-400 hover:bg-amber-500 text-gray-900 rounded-full text-xs font-bold transition-colors"
+                                                    className="px-4 py-1.5 bg-amber-400 hover:bg-amber-500 text-gray-900 rounded-full text-xs font-bold transition-colors shrink-0 mb-0.5"
                                                 >
                                                     Details
                                                 </LocaleLink>
@@ -377,7 +388,7 @@ export default function DestinationSection() {
                             {activeDest.operators.length > 2 && (
                                 <div className="pt-4 mt-4 border-t border-gray-100 text-center">
                                     <LocaleLink
-                                        href={`/destinations/${activeDest.slug}/cruises`}
+                                        href={`/cruises?destination=${activeDest.slug}`}
                                         className="text-sm text-blue-600 font-semibold hover:underline"
                                     >
                                         View all {activeDest.operators.length} cruises →
@@ -398,12 +409,10 @@ export default function DestinationSection() {
                     <div className="mt-4">
                         <div className="flex items-center gap-3">
                             {/* Destination Thumbnails Slider */}
-                            <div className="flex-1 overflow-hidden">
+                            <div className="flex-1 overflow-x-auto scrollbar-hide">
                                 <div
-                                    className="flex gap-3 transition-transform duration-500 ease-out"
-                                    style={{
-                                        transform: `translateX(-${Math.max(0, activeIndex - 1) * (100 / Math.min(destinations.length, 5))}%)`
-                                    }}
+                                    className="flex gap-3"
+                                    style={{ minWidth: 'min-content' }}
                                 >
                                     {destinations.map((dest, idx) => (
                                         <button

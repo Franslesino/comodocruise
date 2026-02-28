@@ -8,6 +8,7 @@ export default function BookingBarContainer() {
     const [isHeaderMode, setIsHeaderMode] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
     const [navbarContainer, setNavbarContainer] = useState<HTMLElement | null>(null);
+    const [heroContainer, setHeroContainer] = useState<HTMLElement | null>(null);
 
     // Shared dropdown states
     const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
@@ -16,12 +17,11 @@ export default function BookingBarContainer() {
     const [showGuestDropdown, setShowGuestDropdown] = useState(false);
 
     useEffect(() => {
-        // Small delay to prevent flash
         const timer = setTimeout(() => {
             setIsVisible(true);
-            // Find the navbar container after component mounts
-            const container = document.getElementById("navbar-booking-container");
-            setNavbarContainer(container);
+            // Find the containers after component mounts
+            setNavbarContainer(document.getElementById("navbar-booking-container"));
+            setHeroContainer(document.getElementById("hero-booking-container"));
         }, 100);
 
         // Use IntersectionObserver to match navbar behavior exactly
@@ -59,40 +59,30 @@ export default function BookingBarContainer() {
 
     return (
         <>
-            {/* Hero Position BookingBar - shown when not scrolled */}
-            <div 
-                className={`fixed transition-all duration-300 ${
-                    isHeaderMode 
-                        ? 'opacity-0 pointer-events-none translate-y-4 scale-95' 
-                        : 'opacity-100 translate-y-0 scale-100'
-                }`}
-                style={{ 
-                    bottom: '48px', 
-                    left: '50%', 
-                    transform: `translateX(-50%) ${isHeaderMode ? 'translateY(16px)' : 'translateY(0px)'}`,
-                    zIndex: 100,
-                    width: '100%',
-                    maxWidth: '1000px',
-                    paddingLeft: '24px',
-                    paddingRight: '24px',
-                    display: 'flex',
-                    justifyContent: 'center'
-                }}
-            >
-                <BookingBar position="hero" {...dropdownProps} />
-            </div>
+            {heroContainer && createPortal(
+                <div
+                    className={`transition-all duration-300 w-full flex justify-center
+                        opacity-100 pointer-events-auto
+                        ${isHeaderMode
+                            ? 'md:opacity-0 md:pointer-events-none md:translate-y-4 md:scale-95 md:z-[-1]'
+                            : 'z-[100]'
+                        }`}
+                >
+                    <BookingBar position="hero" {...dropdownProps} />
+                </div>,
+                heroContainer
+            )}
 
             {/* Header Position BookingBar - integrated into navbar */}
             {isHeaderMode && navbarContainer && createPortal(
-                <div 
-                    className={`transition-all duration-300 ${
-                        isHeaderMode 
-                            ? 'opacity-100 translate-y-0 scale-100' 
-                            : 'opacity-0 translate-y-4 scale-95'
-                    }`}
+                <div
+                    className={`transition-all duration-300 ${isHeaderMode
+                        ? 'opacity-100 translate-y-0 scale-100'
+                        : 'opacity-0 translate-y-4 scale-95'
+                        }`}
                     style={{
                         width: '100%',
-                        maxWidth: '600px', // Smaller size for header
+                        maxWidth: '600px',
                         display: 'flex',
                         justifyContent: 'center'
                     }}

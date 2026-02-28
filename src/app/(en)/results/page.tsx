@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import SearchResults from "@/components/SearchResults";
 
 export const metadata: Metadata = {
-    title: "Search Results - COMODOCRUISE",
+    title: "Search Results - KOMODOCRUISES",
     description: "Find your perfect sea voyage experience.",
 };
 

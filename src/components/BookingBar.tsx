@@ -18,7 +18,7 @@ function formatDestinationForBooking(destName: string): Destination {
         'komodo national park': 'Home to legendary dragons & pristine reefs',
         'labuan bajo': 'Gateway to Komodo with stunning sunsets'
     };
-    
+
     return {
         id: destName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         name: destName,
@@ -72,9 +72,10 @@ interface BookingBarProps {
     setShowDurationDropdown: (show: boolean) => void;
     showGuestDropdown: boolean;
     setShowGuestDropdown: (show: boolean) => void;
+    onSearch?: () => void;
 }
 
-export default function BookingBar({ 
+export default function BookingBar({
     position,
     showDestinationDropdown,
     setShowDestinationDropdown,
@@ -84,6 +85,7 @@ export default function BookingBar({
     setShowDurationDropdown,
     showGuestDropdown,
     setShowGuestDropdown,
+    onSearch,
 }: BookingBarProps) {
     const router = useRouter();
     const pathname = usePathname();
@@ -199,7 +201,7 @@ export default function BookingBar({
     const handleSearch = () => {
         const locale = getLocaleFromPathname(pathname);
         const params = new URLSearchParams();
-        
+
         if (selectedDestinations.length > 0) {
             params.set("destinations", selectedDestinations.join(","));
         }
@@ -214,14 +216,15 @@ export default function BookingBar({
 
         const searchUrl = localizePath(`/results?${params.toString()}`, locale);
         router.push(searchUrl);
+        onSearch?.();
     };
 
     const calendarDays = generateCalendarDays(calendarYear, calendarMonth);
-    const monthNames = ["January", "February", "March", "April", "May", "June", 
-                        "July", "August", "September", "October", "November", "December"];
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"];
 
-    const positionClass = position === "hero" 
-        ? "booking-bar--hero" 
+    const positionClass = position === "hero"
+        ? "booking-bar--hero"
         : "booking-bar--header";
 
     return (
@@ -229,12 +232,12 @@ export default function BookingBar({
             {/* Destination Field */}
             <div ref={destinationRef} className="booking-bar__field relative">
                 <span className="booking-bar__label">Destination</span>
-                <span 
+                <span
                     className="booking-bar__value"
                     onClick={() => setShowDestinationDropdown(!showDestinationDropdown)}
                 >
-                    {selectedDestinations.length > 0 
-                        ? `${selectedDestinations.length} selected` 
+                    {selectedDestinations.length > 0
+                        ? `${selectedDestinations.length} selected`
                         : "Where to?"}
                 </span>
 
@@ -246,8 +249,8 @@ export default function BookingBar({
                         </h4>
                         <div className="space-y-2">
                             {destinations.map(dest => (
-                                <label 
-                                    key={dest.id} 
+                                <label
+                                    key={dest.id}
                                     className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                                 >
                                     <input
@@ -270,7 +273,7 @@ export default function BookingBar({
             {/* Date Field */}
             <div ref={calendarRef} className="booking-bar__field relative">
                 <span className="booking-bar__label">Date</span>
-                <span 
+                <span
                     className="booking-bar__value"
                     onClick={() => setShowCalendar(!showCalendar)}
                 >
@@ -283,10 +286,21 @@ export default function BookingBar({
 
                 {/* Calendar Dropdown */}
                 {showCalendar && (
-                    <div className={`absolute ${position === 'hero' ? 'bottom-full mb-2' : 'top-full mt-2'} left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-xl border border-gray-100 z-50 p-4 w-[640px]`}>
+                    <div
+                        data-calendar-dropdown="true"
+                        className={`
+                            absolute
+                            ${position === 'hero' ? 'bottom-full mb-2' : 'top-full mt-2'}
+                            left-1/2 -translate-x-1/2
+                            bg-white rounded-xl shadow-xl border border-gray-100
+                            z-50 p-4
+                            w-[640px] max-w-[calc(100vw-2rem)]
+                        `}
+                        style={{ '--calendar-active': '1' } as React.CSSProperties}
+                    >
                         {/* Month Navigation */}
                         <div className="flex items-center justify-between mb-4">
-                            <button 
+                            <button
                                 onClick={() => {
                                     if (calendarMonth === 0) {
                                         setCalendarMonth(11);
@@ -301,15 +315,18 @@ export default function BookingBar({
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
+
+                            {/* Desktop: two month names | Mobile: one */}
                             <div className="flex gap-12">
                                 <span className="font-avenir font-semibold">
                                     {monthNames[calendarMonth]} {calendarYear}
                                 </span>
-                                <span className="font-avenir font-semibold">
+                                <span className="font-avenir font-semibold hidden md:inline">
                                     {monthNames[(calendarMonth + 1) % 12]} {calendarMonth === 11 ? calendarYear + 1 : calendarYear}
                                 </span>
                             </div>
-                            <button 
+
+                            <button
                                 onClick={() => {
                                     if (calendarMonth === 11) {
                                         setCalendarMonth(0);
@@ -326,11 +343,10 @@ export default function BookingBar({
                             </button>
                         </div>
 
-                        {/* Two Months Grid */}
-                        <div className="grid grid-cols-2 gap-6">
+                        {/* Calendar Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* First Month */}
                             <div>
-                                {/* Day Headers */}
                                 <div className="grid grid-cols-7 gap-1 mb-2">
                                     {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(day => (
                                         <div key={day} className="text-center text-xs font-medium text-gray-400 py-2">
@@ -338,18 +354,14 @@ export default function BookingBar({
                                         </div>
                                     ))}
                                 </div>
-
-                                {/* Calendar Days - Current Month */}
                                 <div className="grid grid-cols-7 gap-1">
                                     {calendarDays.map((date, idx) => {
                                         if (!date) return <div key={`empty-${idx}`} />;
-                                        
                                         const today = new Date();
                                         today.setHours(0, 0, 0, 0);
                                         const isPast = date < today;
                                         const isSelected = isDateSelected(date);
                                         const inRange = isDateInRange(date);
-
                                         return (
                                             <button
                                                 key={date.toISOString()}
@@ -369,9 +381,8 @@ export default function BookingBar({
                                 </div>
                             </div>
 
-                            {/* Second Month */}
-                            <div>
-                                {/* Day Headers */}
+                            {/* Second Month — desktop only */}
+                            <div className="hidden md:block">
                                 <div className="grid grid-cols-7 gap-1 mb-2">
                                     {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(day => (
                                         <div key={`next-${day}`} className="text-center text-xs font-medium text-gray-400 py-2">
@@ -379,21 +390,17 @@ export default function BookingBar({
                                         </div>
                                     ))}
                                 </div>
-
-                                {/* Calendar Days - Next Month */}
                                 <div className="grid grid-cols-7 gap-1">
                                     {generateCalendarDays(
                                         calendarMonth === 11 ? calendarYear + 1 : calendarYear,
                                         (calendarMonth + 1) % 12
                                     ).map((date, idx) => {
                                         if (!date) return <div key={`empty-next-${idx}`} />;
-                                        
                                         const today = new Date();
                                         today.setHours(0, 0, 0, 0);
                                         const isPast = date < today;
                                         const isSelected = isDateSelected(date);
                                         const inRange = isDateInRange(date);
-
                                         return (
                                             <button
                                                 key={date.toISOString()}
@@ -420,7 +427,7 @@ export default function BookingBar({
             {/* Duration Field */}
             <div ref={durationRef} className="booking-bar__field relative">
                 <span className="booking-bar__label">Duration</span>
-                <span 
+                <span
                     className="booking-bar__value"
                     onClick={() => setShowDurationDropdown(!showDurationDropdown)}
                 >
@@ -433,7 +440,7 @@ export default function BookingBar({
                         <div className="flex items-center justify-between">
                             <span className="font-avenir font-medium text-gray-900">Duration (Days)</span>
                             <div className="flex items-center gap-4">
-                                <button 
+                                <button
                                     onClick={() => setDuration(Math.max(1, duration - 1))}
                                     className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
                                 >
@@ -442,7 +449,7 @@ export default function BookingBar({
                                     </svg>
                                 </button>
                                 <span className="font-avenir font-semibold text-lg w-8 text-center">{duration}</span>
-                                <button 
+                                <button
                                     onClick={() => setDuration(Math.min(30, duration + 1))}
                                     className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
                                 >
@@ -462,7 +469,7 @@ export default function BookingBar({
             {/* Guests Field */}
             <div ref={guestRef} className="booking-bar__field relative">
                 <span className="booking-bar__label">Guests</span>
-                <span 
+                <span
                     className="booking-bar__value"
                     onClick={() => setShowGuestDropdown(!showGuestDropdown)}
                 >
@@ -475,7 +482,7 @@ export default function BookingBar({
                         <div className="flex items-center justify-between">
                             <span className="font-avenir font-medium text-gray-900">Guests</span>
                             <div className="flex items-center gap-4">
-                                <button 
+                                <button
                                     onClick={() => setPassengers(Math.max(1, passengers - 1))}
                                     className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
                                 >
@@ -484,7 +491,7 @@ export default function BookingBar({
                                     </svg>
                                 </button>
                                 <span className="font-avenir font-semibold text-lg w-8 text-center">{passengers}</span>
-                                <button 
+                                <button
                                     onClick={() => setPassengers(passengers + 1)}
                                     className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
                                 >
@@ -499,12 +506,12 @@ export default function BookingBar({
             </div>
 
             {/* Search Button */}
-            <button 
+            <button
                 className="booking-bar__button"
                 onClick={handleSearch}
             >
                 Search
             </button>
-        </div>
+        </div >
     );
 }

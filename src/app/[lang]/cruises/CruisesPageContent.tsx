@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import SearchResults from "@/components/SearchResults";
+import CruisesPage from "@/components/CruisesPage";
 
 export default function CruisesPageContent() {
     return (
@@ -13,7 +13,7 @@ export default function CruisesPageContent() {
                 </div>
             }
         >
-            <SearchResults showHero />
+            <CruisesPage />
         </Suspense>
     );
 }

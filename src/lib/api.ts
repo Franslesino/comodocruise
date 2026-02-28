@@ -1,8 +1,8 @@
 // API service functions for fetching ships, cabins, and availability data
 
-import { 
-    ShipsApiResponse, 
-    CabinsApiResponse, 
+import {
+    ShipsApiResponse,
+    CabinsApiResponse,
     AvailabilityApiResponse,
     AvailabilityOperator,
     ParsedShip,
@@ -22,15 +22,40 @@ const API_BASE_URL = typeof window !== 'undefined'
 // Sentinel price used as placeholder for unpriced cabins
 const PLACEHOLDER_PRICE = 43243243;
 
+// ============================================
+// IN-MEMORY CACHE (avoids redundant slow API calls)
+// ============================================
+interface CacheEntry<T> {
+    data: T;
+    timestamp: number;
+}
+
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const cache = new Map<string, CacheEntry<unknown>>();
+
+function getCached<T>(key: string): T | null {
+    const entry = cache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > CACHE_TTL) {
+        cache.delete(key);
+        return null;
+    }
+    return entry.data as T;
+}
+
+function setCache<T>(key: string, data: T): void {
+    cache.set(key, { data, timestamp: Date.now() });
+}
+
 // Convert Google Drive sharing URL to direct image URL
 function convertGoogleDriveUrl(url: string): string {
     if (!url || !url.includes('drive.google.com')) return url;
-    
+
     const fileIdMatch = url.match(/(?:file\/d\/|id=)([\w-]+)/);
     if (fileIdMatch && fileIdMatch[1]) {
         return `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&sz=w800`;
     }
-    
+
     return url;
 }
 
@@ -50,7 +75,7 @@ function aggregateCabinsByBoat(cabins: CabinData[]): Map<string, BoatCabinStats>
 
     for (const cabin of cabins) {
         const key = normalizeBoatName(cabin.boat_name);
-        
+
         // Skip cabins with no valid price
         const hasValidPrice = cabin.price > 0 && cabin.price !== PLACEHOLDER_PRICE;
 
@@ -99,6 +124,9 @@ function aggregateCabinsByBoat(cabins: CabinData[]): Map<string, BoatCabinStats>
 
 // Fetch raw cabins from API (graceful — returns empty array on failure)
 async function fetchRawCabins(): Promise<CabinData[]> {
+    const cached = getCached<CabinData[]>('rawCabins');
+    if (cached) return cached;
+
     try {
         const response = await fetch(`${API_BASE_URL}/cabins`, {
             headers: { 'Accept': 'application/json' },
@@ -109,6 +137,7 @@ async function fetchRawCabins(): Promise<CabinData[]> {
         }
         const data: CabinsApiResponse = await response.json();
         if (!data.success) return [];
+        setCache('rawCabins', data.data);
         return data.data;
     } catch (err) {
         console.warn('Failed to fetch cabins, continuing without cabin data:', err);
@@ -140,6 +169,9 @@ function parseShipData(ship: Ship, cabinStats?: BoatCabinStats): ParsedShip {
 
 // Fetch all ships, merged with cabin stats
 export async function fetchShips(): Promise<ParsedShip[]> {
+    const cached = getCached<ParsedShip[]>('parsedShips');
+    if (cached) return cached;
+
     try {
         // Fetch ships and cabins in parallel
         const [shipsRes, rawCabins] = await Promise.all([
@@ -153,11 +185,13 @@ export async function fetchShips(): Promise<ParsedShip[]> {
 
         const cabinStatsMap = aggregateCabinsByBoat(rawCabins);
 
-        return shipsData.data.map(ship => {
+        const result = shipsData.data.map(ship => {
             const normalizedShipName = normalizeBoatName(ship.name);
             const stats = cabinStatsMap.get(normalizedShipName);
             return parseShipData(ship, stats);
         });
+        setCache('parsedShips', result);
+        return result;
     } catch (error) {
         console.error('Error fetching ships:', error);
         throw error;
@@ -194,7 +228,7 @@ export async function searchShips(query: {
 
         let filtered = ships;
         if (query.destination && query.destination.toLowerCase() !== 'all') {
-            filtered = ships.filter(ship => 
+            filtered = ships.filter(ship =>
                 ship.destinations.toLowerCase().includes(query.destination!.toLowerCase()) ||
                 ship.name.toLowerCase().includes(query.destination!.toLowerCase())
             );
@@ -212,7 +246,7 @@ export async function getDestinations(): Promise<string[]> {
     try {
         const ships = await fetchShips();
         const destinations = new Set<string>();
-        
+
         ships.forEach(ship => {
             if (ship.destinations) {
                 ship.destinations.split(',').forEach(dest => {
@@ -237,12 +271,16 @@ export { convertGoogleDriveUrl, parseShipData, normalizeBoatName };
 
 // Fetch all raw ships as array
 export async function fetchAllShips(): Promise<Ship[]> {
+    const cached = getCached<Ship[]>('rawShips');
+    if (cached) return cached;
+
     const response = await fetch(`${API_BASE_URL}/ships`, {
         headers: { 'Accept': 'application/json' },
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data: ShipsApiResponse = await response.json();
     if (!data.success) throw new Error('Ships API returned success: false');
+    setCache('rawShips', data.data);
     return data.data;
 }
 
@@ -291,24 +329,24 @@ export async function fetchCabinDetails(cabinId: string): Promise<CabinData | nu
 export function boatNamesMatch(name1: string, name2: string): boolean {
     const n1 = normalizeBoatName(name1);
     const n2 = normalizeBoatName(name2);
-    
+
     // Exact match
     if (n1 === n2) return true;
-    
+
     // Substring match
     if (n1.includes(n2) || n2.includes(n1)) return true;
-    
+
     // Check first word match (for names like "AMORE", "BOMBANA")
     const words1 = n1.replace(/[^A-Z0-9 ]/g, '').split(/\s+/);
     const words2 = n2.replace(/[^A-Z0-9 ]/g, '').split(/\s+/);
     if (words1[0] && words2[0] && words1[0] === words2[0] && words1[0].length > 3) return true;
-    
+
     // Handle variations like "ALFATHRAN" vs "AL FATHRAN"
     const compact1 = n1.replace(/\s+/g, '');
     const compact2 = n2.replace(/\s+/g, '');
     if (compact1 === compact2) return true;
     if (compact1.includes(compact2) || compact2.includes(compact1)) return true;
-    
+
     return false;
 }
 
@@ -328,13 +366,20 @@ export function cabinNamesMatch(cabinName: string, availabilityCabinName: string
 
 // Check availability for a specific date string
 export async function checkAvailabilityByDate(dateStr: string) {
+    const cacheKey = `avail_${dateStr}`;
+    const cached = getCached<AvailabilityApiResponse>(cacheKey);
+    if (cached) return cached;
+
     try {
         const response = await fetch(`${API_BASE_URL}/availability?date=${dateStr}`, {
             headers: { 'Accept': 'application/json' },
+            next: { revalidate: 300 }
         });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data: AvailabilityApiResponse = await response.json();
         if (!data.success) throw new Error('Availability API returned success: false');
+
+        setCache(cacheKey, data);
         return data;
     } catch (error) {
         console.warn(`Failed to fetch availability for ${dateStr}:`, error);
@@ -433,10 +478,11 @@ export function aggregateAvailabilityWithDates(
 // Fetch and aggregate availability for a date range
 export async function fetchAndAggregateAvailability(
     dateFrom: string,
-    dateTo?: string
+    dateTo?: string,
+    sampledDates?: string[]
 ): Promise<Map<string, OperatorAvailabilityWithDates>> {
     try {
-        const allDates = generateAllDatesInRange(dateFrom, dateTo);
+        const allDates = sampledDates || generateAllDatesInRange(dateFrom, dateTo);
         const batchSize = 10;
         const allResponses: AvailabilityApiResponse[] = [];
 
@@ -483,7 +529,7 @@ export function getDirectImageUrl(driveUrl: string): string {
     if (!driveUrl) return '/placeholder-boat.svg';
     if (driveUrl.includes('/folders/')) return '/placeholder-cabin.jpg';
     if (!driveUrl.includes('drive.google.com')) return driveUrl;
-    
+
     const fileIdMatch = driveUrl.match(/(?:\/d\/|[?&]id=)([\w-]+)/);
     if (fileIdMatch && fileIdMatch[1]) {
         return `https://lh3.googleusercontent.com/d/${fileIdMatch[1]}=w1600`;

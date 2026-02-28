@@ -169,7 +169,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
     const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
     const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
 
-    /* fetch ship, cabins & availability */
+    /* ─── Phase 1: fetch ship + cabins (fast, cached) → render immediately ─── */
     useEffect(() => {
         let cancelled = false;
         (async () => {
@@ -191,21 +191,24 @@ export default function ShipDetail({ slug }: { slug: string }) {
                     boatNamesMatch(c.boat_name, found.name)
                 );
 
-                // Fetch availability for +90 days from today
-                const today = new Date();
-                const dateFrom = toLocalDateStr(today);
-                const futureDate = new Date(today);
-                futureDate.setDate(futureDate.getDate() + 90);
-                const dateTo = toLocalDateStr(futureDate);
+                setShip(found);
+                // Show cabins without dates right away
+                setCabins(shipCabins.map(c => ({ ...c, availableDates: [] })));
+                setOtherShips(allShips.filter((s) => s.slug !== slug).slice(0, 4));
+                setLoading(false);
 
-                let cabinsWithDates: CabinWithDates[] = shipCabins.map(c => ({ ...c, availableDates: [] }));
-
+                // ─── Phase 2: enrich with availability in the background ───
                 try {
-                    const availabilityMap = await fetchAndAggregateAvailability(dateFrom, dateTo);
-                    // Find operator matching this ship
-                    const shipNameUpper = found.name.toUpperCase();
-                    let operatorData: OperatorAvailabilityWithDates | undefined;
+                    const today = new Date();
+                    const dateFrom = toLocalDateStr(today);
+                    const futureDate = new Date(today);
+                    futureDate.setDate(futureDate.getDate() + 90);
+                    const dateTo = toLocalDateStr(futureDate);
 
+                    const availabilityMap = await fetchAndAggregateAvailability(dateFrom, dateTo);
+                    if (cancelled) return;
+
+                    let operatorData: OperatorAvailabilityWithDates | undefined;
                     availabilityMap.forEach((op) => {
                         if (boatNamesMatch(op.operator, found.name)) {
                             operatorData = op;
@@ -214,8 +217,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
 
                     if (operatorData) {
                         setShipAvailableDates(operatorData.availableDates || []);
-                        // Enrich cabins with per-cabin available dates
-                        cabinsWithDates = shipCabins.map(cabin => {
+                        const cabinsWithDates = shipCabins.map(cabin => {
                             const matchCabin = operatorData!.cabins.find(ac =>
                                 cabinNamesMatch(cabin.cabin_name, ac.name) ||
                                 cabinNamesMatch(cabin.cabin_name_api, ac.name)
@@ -225,18 +227,13 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                 availableDates: matchCabin?.availableDates || operatorData!.availableDates || [],
                             };
                         });
+                        if (!cancelled) setCabins(cabinsWithDates);
                     }
                 } catch {
-                    // Availability fetch failed, continue without dates
+                    // Availability fetch failed silently — page already rendered
                 }
-
-                if (cancelled) return;
-                setShip(found);
-                setCabins(cabinsWithDates);
-                setOtherShips(allShips.filter((s) => s.slug !== slug).slice(0, 4));
             } catch {
                 if (!cancelled) setError(true);
-            } finally {
                 if (!cancelled) setLoading(false);
             }
         })();
@@ -362,7 +359,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
         if (cached && cached.length > 0) return cached;
         const images: string[] = [];
         if (cabin.image_main) images.push(cabin.image_main);
-        return images.length > 0 ? images : ["/placeholder-cabin.jpg"];
+        return images.length > 0 ? images : ["/placeholder-cabin.svg"];
     }, [cabinImagesCache]);
 
     const handleCabinPrevImage = (cabinId: string, e: React.MouseEvent) => {
@@ -1071,104 +1068,140 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                                                 {cabinAvailDates.length === 0 ? (
                                                                     <div className="sd-no-dates">No available dates found</div>
                                                                 ) : (
-                                                                    <div className="sd-dates-list">
-                                                                        {cabinAvailDates.slice(0, 10).map((date, dateIdx) => {
-                                                                            const startDate = new Date(date);
-                                                                            const endDate = new Date(date);
-                                                                            endDate.setDate(endDate.getDate() + tripNights);
+                                                                    <>
+                                                                        {/* Desktop: detailed cards */}
+                                                                        <div className="sd-dates-list sd-dates-list-desktop">
+                                                                            {cabinAvailDates.slice(0, 10).map((date, dateIdx) => {
+                                                                                const startDate = new Date(date);
+                                                                                const endDate = new Date(date);
+                                                                                endDate.setDate(endDate.getDate() + tripNights);
 
-                                                                            // Get day of week
-                                                                            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                                                                            const departureDay = dayNames[startDate.getDay()];
+                                                                                // Get day of week
+                                                                                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                                                                                const departureDay = dayNames[startDate.getDay()];
 
-                                                                            // Calculate if date is within 30 days (urgency indicator)
-                                                                            const today = new Date();
-                                                                            const daysUntilDeparture = Math.floor((startDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                                                                            const isUrgent = daysUntilDeparture > 0 && daysUntilDeparture <= 30;
+                                                                                // Calculate if date is within 30 days (urgency indicator)
+                                                                                const today = new Date();
+                                                                                const daysUntilDeparture = Math.floor((startDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                                                                                const isUrgent = daysUntilDeparture > 0 && daysUntilDeparture <= 30;
 
-                                                                            return (
-                                                                                <div key={dateIdx} className="sd-date-option-detailed">
-                                                                                    <div className="sd-date-option-left">
-                                                                                        <div className="sd-date-departure-info">
-                                                                                            <span className="sd-date-day">{departureDay}</span>
-                                                                                            <span className="sd-date-range-detailed">
-                                                                                                {startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                                                                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ margin: '0 0.5rem' }}>
+                                                                                return (
+                                                                                    <div key={dateIdx} className="sd-date-option-detailed">
+                                                                                        <div className="sd-date-option-left">
+                                                                                            <div className="sd-date-departure-info">
+                                                                                                <span className="sd-date-day">{departureDay}</span>
+                                                                                                <span className="sd-date-range-detailed">
+                                                                                                    {startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                                                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ margin: '0 0.5rem' }}>
+                                                                                                        <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                                    </svg>
+                                                                                                    {endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                                                                                </span>
+                                                                                                <span className="sd-date-duration">
+                                                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginRight: '4px' }}>
+                                                                                                        <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+                                                                                                    </svg>
+                                                                                                    {ship.tripDuration} Days / {tripNights} Nights
+                                                                                                </span>
+                                                                                            </div>
+                                                                                            <div className="sd-date-cabin-details">
+                                                                                                <span className="sd-date-cabin-info">
+                                                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginRight: '4px' }}>
+                                                                                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                                                                                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                                                                                    </svg>
+                                                                                                    {cabin.cabin_name} • Max {cabin.total_capacity} guests
+                                                                                                </span>
+                                                                                                <span className="sd-date-cabin-facilities">
+                                                                                                    {cabin.facilities.balcony && (
+                                                                                                        <span className="sd-facility-badge">
+                                                                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                                                                                                <path d="M12 2L2 7v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7L12 2zm0 2.18l8 3.6V17c0 .55-.45 1-1 1H5c-.55 0-1-.45-1-1V7.78l8-3.6z" />
+                                                                                                            </svg>
+                                                                                                            Balcony
+                                                                                                        </span>
+                                                                                                    )}
+                                                                                                    {cabin.facilities.seaview && (
+                                                                                                        <span className="sd-facility-badge">
+                                                                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                                                                                                <path d="M12 9c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3m0-2c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z" />
+                                                                                                            </svg>
+                                                                                                            Sea View
+                                                                                                        </span>
+                                                                                                    )}
+                                                                                                    {cabin.facilities.large_bed && (
+                                                                                                        <span className="sd-facility-badge">
+                                                                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                                                                                                <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" />
+                                                                                                            </svg>
+                                                                                                            King Bed
+                                                                                                        </span>
+                                                                                                    )}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div className="sd-date-option-right">
+                                                                                            <div className="sd-date-price-info">
+                                                                                                <span className="sd-date-price-label">Total from</span>
+                                                                                                <span className="sd-date-price-value">{formatPrice(cabin.price || ship.lowestPrice || 0)}</span>
+                                                                                                <span className="sd-date-price-note">per person</span>
+                                                                                            </div>
+                                                                                            {isUrgent && (
+                                                                                                <span className="sd-date-urgency-badge">
+                                                                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: '4px' }}>
+                                                                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                                                                                                    </svg>
+                                                                                                    Departing soon
+                                                                                                </span>
+                                                                                            )}
+                                                                                            <LocaleLink
+                                                                                                href={`/results?ship=${encodeURIComponent(ship.name)}&dateFrom=${date}`}
+                                                                                                className="sd-select-btn-detailed"
+                                                                                            >
+                                                                                                SELECT DATES
+                                                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginLeft: '6px' }}>
                                                                                                     <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
                                                                                                 </svg>
-                                                                                                {endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                                                                                            </span>
-                                                                                            <span className="sd-date-duration">
-                                                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginRight: '4px' }}>
-                                                                                                    <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
-                                                                                                </svg>
-                                                                                                {ship.tripDuration} Days / {tripNights} Nights
-                                                                                            </span>
-                                                                                        </div>
-                                                                                        <div className="sd-date-cabin-details">
-                                                                                            <span className="sd-date-cabin-info">
-                                                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginRight: '4px' }}>
-                                                                                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                                                                                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                                                                                                </svg>
-                                                                                                {cabin.cabin_name} • Max {cabin.total_capacity} guests
-                                                                                            </span>
-                                                                                            <span className="sd-date-cabin-facilities">
-                                                                                                {cabin.facilities.balcony && (
-                                                                                                    <span className="sd-facility-badge">
-                                                                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                                                                                            <path d="M12 2L2 7v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7L12 2zm0 2.18l8 3.6V17c0 .55-.45 1-1 1H5c-.55 0-1-.45-1-1V7.78l8-3.6z" />
-                                                                                                        </svg>
-                                                                                                        Balcony
-                                                                                                    </span>
-                                                                                                )}
-                                                                                                {cabin.facilities.seaview && (
-                                                                                                    <span className="sd-facility-badge">
-                                                                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                                                                                            <path d="M12 9c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3m0-2c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z" />
-                                                                                                        </svg>
-                                                                                                        Sea View
-                                                                                                    </span>
-                                                                                                )}
-                                                                                                {cabin.facilities.large_bed && (
-                                                                                                    <span className="sd-facility-badge">
-                                                                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                                                                                            <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" />
-                                                                                                        </svg>
-                                                                                                        King Bed
-                                                                                                    </span>
-                                                                                                )}
-                                                                                            </span>
+                                                                                            </LocaleLink>
                                                                                         </div>
                                                                                     </div>
-                                                                                    <div className="sd-date-option-right">
-                                                                                        <div className="sd-date-price-info">
-                                                                                            <span className="sd-date-price-label">Total from</span>
-                                                                                            <span className="sd-date-price-value">{formatPrice(cabin.price || ship.lowestPrice || 0)}</span>
-                                                                                            <span className="sd-date-price-note">per person</span>
-                                                                                        </div>
-                                                                                        {isUrgent && (
-                                                                                            <span className="sd-date-urgency-badge">
-                                                                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: '4px' }}>
-                                                                                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                                                                                                </svg>
-                                                                                                Departing soon
-                                                                                            </span>
-                                                                                        )}
-                                                                                        <LocaleLink
-                                                                                            href={`/results?ship=${encodeURIComponent(ship.name)}&dateFrom=${date}`}
-                                                                                            className="sd-select-btn-detailed"
-                                                                                        >
-                                                                                            SELECT DATES
-                                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ marginLeft: '6px' }}>
-                                                                                                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                );
+                                                                            })}
+                                                                        </div>
+
+                                                                        {/* Mobile: compact date list */}
+                                                                        <div className="sd-dates-list sd-dates-list-mobile">
+                                                                            {cabinAvailDates.slice(0, 10).map((date, dateIdx) => {
+                                                                                const startDate = new Date(date);
+                                                                                const endDate = new Date(date);
+                                                                                endDate.setDate(endDate.getDate() + tripNights);
+                                                                                const today = new Date();
+                                                                                const daysUntilDeparture = Math.floor((startDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                                                                                const isUrgent = daysUntilDeparture > 0 && daysUntilDeparture <= 30;
+
+                                                                                return (
+                                                                                    <LocaleLink
+                                                                                        key={dateIdx}
+                                                                                        href={`/results?ship=${encodeURIComponent(ship.name)}&dateFrom=${date}`}
+                                                                                        className="sd-date-compact-row"
+                                                                                    >
+                                                                                        <div className="sd-date-compact-left">
+                                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                                                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                                                                                             </svg>
-                                                                                        </LocaleLink>
-                                                                                    </div>
-                                                                                </div>
-                                                                            );
-                                                                        })}
-                                                                    </div>
+                                                                                            <span className="sd-date-compact-range">
+                                                                                                {startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} → {endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                                                                            </span>
+                                                                                            {isUrgent && <span className="sd-date-compact-urgent">Soon</span>}
+                                                                                        </div>
+                                                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="sd-date-compact-arrow">
+                                                                                            <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+                                                                                        </svg>
+                                                                                    </LocaleLink>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    </>
                                                                 )}
                                                             </div>
                                                         </td>

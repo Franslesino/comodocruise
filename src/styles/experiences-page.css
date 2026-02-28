@@ -258,9 +258,15 @@
     background: #fff;
     border-bottom: 1.5px solid #e8f0f8;
     position: sticky;
-    top: 64px;
+    top: 80px;
     z-index: 30;
     box-shadow: 0 2px 12px rgba(9, 37, 63, 0.06);
+}
+
+@media (max-width: 640px) {
+    .exp-filter-bar {
+        top: 48px; /* Matched perfectly to py-2 + h-8 logo height in Navbar.tsx */
+    }
 }
 
 .exp-filter-inner {
@@ -1259,15 +1265,31 @@
     line-height: 1.78;
     margin: 0;
     display: -webkit-box;
-    -webkit-line-clamp: 4;
-    line-clamp: 4;
+    -webkit-line-clamp: 3;
+    /* Reduced from 4 */
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+@media (max-width: 640px) {
+    .exp-spot-desc {
+        -webkit-line-clamp: 2;
+        /* Even shorter on mobile */
+        line-clamp: 2;
+    }
 }
 
 /* Why guests love this */
 .exp-spot-highlights {
     margin: 0;
+}
+
+@media (max-width: 640px) {
+    .exp-spot-highlights {
+        display: none;
+        /* Hide entirely on mobile to save vertical space */
+    }
 }
 
 .exp-spot-highlights-label {

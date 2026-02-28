@@ -375,7 +375,7 @@
     display: block;
     font-weight: 700;
     font-size: 0.9rem;
-    color: #16a34a;
+    color: #12214a;
     text-transform: uppercase;
     letter-spacing: 0.02em;
 }
@@ -425,8 +425,8 @@
 
 /* Price box */
 .sd-price-box {
-    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-    border: 1px solid #bbf7d0;
+    background: linear-gradient(135deg, #e8eaf2 0%, #f0f2fa 100%);
+    border: 1px solid #c5c9de;
     padding: 1rem 1.25rem;
     border-radius: 12px;
     display: flex;
@@ -1390,7 +1390,7 @@
 .sd-price-amount {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #dc2626;
+    color: #12214a;
 }
 
 .sd-price-unit {
@@ -1445,9 +1445,9 @@
 
 .sd-rating-box {
     padding: 1rem;
-    background: #f0fdf4;
+    background: #e8eaf2;
     border-radius: 8px;
-    border: 1px solid #bbf7d0;
+    border: 1px solid #c5c9de;
 }
 
 .sd-rating-score {
@@ -1459,7 +1459,7 @@
 .sd-score {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #16a34a;
+    color: #12214a;
 }
 
 .sd-rating-text {
@@ -1470,7 +1470,7 @@
 
 .sd-rating-status {
     font-weight: 600;
-    color: #15803d;
+    color: #12214a;
     font-size: 1rem;
 }
 
@@ -1651,7 +1651,7 @@
     content: "✓";
     position: absolute;
     left: 0;
-    color: #16a34a;
+    color: #12214a;
     font-weight: 700;
 }
 
@@ -1765,8 +1765,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 1.5rem;
-    background: #ecfdf5;
-    border-bottom: 1px solid #d1fae5;
+    background: #e8eaf2;
+    border-bottom: 1px solid #c5c9de;
 }
 
 .sd-date-picker-info p {
@@ -1930,8 +1930,8 @@
 }
 
 .sd-calendar-day.in-range {
-    background: #d1fae5;
-    border-color: #a7f3d0;
+    background: #e8eaf2;
+    border-color: #c5c9de;
     color: #12214a;
 }
 
@@ -2173,8 +2173,8 @@
     align-items: center;
     gap: 0.4rem;
     padding: 0.45rem 1rem;
-    background: #ecfdf5;
-    color: #047857;
+    background: #e8eaf2;
+    color: #12214a;
     border-radius: 6px;
     font-size: 0.85rem;
     font-weight: 600;
@@ -2670,41 +2670,65 @@
     }
 
     .sd-cabin-row {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
-        padding: 1rem;
+        padding: 0.75rem;
     }
 
     .sd-cabin-image-cell {
         display: block;
-        padding: 0 0 1rem 0;
+        padding: 0 0 0.75rem 0;
     }
 
     .sd-cabin-carousel {
         width: 100%;
         max-width: 100%;
-        height: 220px;
+        height: 180px;
     }
 
     .sd-cabin-info-cell,
     .sd-max-cell,
     .sd-price-cell {
         display: block;
-        padding: 0.75rem 0;
+        padding: 0.5rem 0;
         text-align: left;
     }
 
-    .sd-max-cell {
-        padding-left: 0;
+    .sd-cabin-name {
+        font-size: 1.05rem;
+        margin-bottom: 0.5rem;
     }
 
-    .sd-guest-icons {
-        justify-content: flex-start;
+    .sd-detail-item {
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .sd-extra-beds-list {
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .sd-show-more-link {
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+    }
+
+    .sd-max-cell {
+        display: none;
+    }
+
+    .sd-plus-icon {
+        font-size: 0.85rem;
     }
 
     .sd-price-info-new {
         align-items: flex-start;
+    }
+
+    .sd-price-amount-new {
+        font-size: 1.25rem;
     }
 
     .sd-book-btn,
@@ -2712,6 +2736,8 @@
         width: 100%;
         text-align: center;
         justify-content: center;
+        padding: 0.6rem;
+        font-size: 0.8rem;
     }
 
     .sd-booking-summary {
@@ -2721,11 +2747,13 @@
 
     .sd-booking-summary-item {
         width: 100%;
+        font-size: 0.85rem;
     }
 
     .sd-date-picker-btn {
         width: 100%;
         justify-content: space-between;
+        font-size: 0.85rem;
     }
 
     .sd-date-picker-dropdown {
@@ -2745,30 +2773,39 @@
         flex-direction: column;
         gap: 0.75rem;
         align-items: flex-start;
+        font-size: 0.8rem;
     }
 
     .sd-dates-row {
         display: block;
-        margin-top: 1rem;
+        margin-top: 0.75rem;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
     }
 
     .sd-dates-container {
-        padding: 1rem;
+        padding: 0.75rem;
     }
 
     .sd-date-option {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.75rem;
-        padding: 1rem;
+        padding: 0.75rem;
     }
 
     .sd-date-option-detailed {
         flex-direction: column;
-        gap: 1.25rem;
-        padding: 1.25rem;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .sd-date-departure-info {
+        gap: 0.25rem;
+    }
+
+    .sd-date-range-detailed {
+        font-size: 0.9rem;
     }
 
     .sd-date-option-right {
@@ -2781,25 +2818,101 @@
     }
 
     .sd-date-price-value {
-        font-size: 1.5rem;
+        font-size: 1.35rem;
     }
 
     .sd-select-btn-detailed {
         width: 100%;
+        padding: 0.6rem;
+        font-size: 0.8rem;
     }
 
     .sd-date-urgency-badge {
         align-self: flex-start;
+        font-size: 0.7rem;
+        padding: 0.3rem 0.6rem;
     }
 
     .sd-date-cabin-facilities {
         flex-direction: column;
+        gap: 0.25rem;
     }
 
     .sd-select-btn {
         width: 100%;
         text-align: center;
+        padding: 0.6rem;
     }
+
+    /* Toggle desktop/mobile date lists */
+    .sd-dates-list-desktop {
+        display: none;
+    }
+
+    .sd-dates-list-mobile {
+        display: flex !important;
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+/* ═══════ COMPACT MOBILE DATE LIST ═══════ */
+/* Hidden by default (desktop), shown via media query on mobile */
+.sd-dates-list-mobile {
+    display: none;
+}
+
+.sd-date-compact-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7rem 0.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s;
+}
+
+.sd-date-compact-row:first-child {
+    border-top: 1px solid #f1f5f9;
+}
+
+.sd-date-compact-row:hover {
+    background: #f8fafc;
+}
+
+.sd-date-compact-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sd-date-compact-left svg {
+    color: #94a3b8;
+    flex-shrink: 0;
+}
+
+.sd-date-compact-range {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.sd-date-compact-urgent {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #92400e;
+    background: #fef3c7;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.sd-date-compact-arrow {
+    color: #94a3b8;
+    flex-shrink: 0;
 }
 
 /* ═══════ ITINERARY ═══════ */
@@ -2984,7 +3097,7 @@
 
 .sd-breakdown-fill {
     height: 100%;
-    background: linear-gradient(90deg, #16a34a, #22c55e);
+    background: linear-gradient(90deg, #12214a, #394882);
     border-radius: 4px;
 }
 
@@ -3082,8 +3195,8 @@
 .sd-review-rating {
     display: inline-block;
     padding: 0.375rem 0.875rem;
-    background: #d1fae5;
-    color: #065f46;
+    background: #e8eaf2;
+    color: #12214a;
     border-radius: 6px;
     font-size: 0.875rem;
     font-weight: 600;

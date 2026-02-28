@@ -147,7 +147,7 @@ const SPOTLIGHT_EXPERIENCES: SpotlightExperience[] = [
         reviewCount: 96,
         duration: "2 hours",
         groupSize: "Max 6 guests",
-        hook: "Rated 4.97 stars — the highest-rated experience on every COMODOCRUISE voyage.",
+        hook: "Rated 4.97 stars — the highest-rated experience on every KOMODOCRUISES voyage.",
         description: "Una-Una's geothermal waters create conditions perfect for bioluminescence that outshines anything you'll find elsewhere in the Indonesian archipelago. You descend into total darkness — then wave your hand. Blue sparks explode. Every movement you make ignites trails of cold blue fire in the water around you. Spanish dancer nudibranch pulse in neon colours. Mandarin fish glow in the reef. Octopus materialise from nowhere. And when you look up, the stars above the surface mirror the living light below. This is one of those experiences that, once you've lived it, becomes the benchmark for everything else.",
         highlights: [
             "Una-Una's geothermal seabed produces Indonesia's most intense bioluminescence",
@@ -197,7 +197,7 @@ const SPOTLIGHT_EXPERIENCES: SpotlightExperience[] = [
         reviewCount: 89,
         duration: "4 hours",
         groupSize: "Max 8 guests",
-        hook: "The most intimate, off-script experience on any COMODOCRUISE itinerary.",
+        hook: "The most intimate, off-script experience on any KOMODOCRUISES itinerary.",
         description: "This one begins before sunrise. You join a local fisherman and his family at the water before the world wakes up — casting traditional hand-lines into the pre-dawn dark while the stars are still out. There's barely a word exchanged; you don't need one. The pull of the line communicates everything. As the horizon brightens and the village slowly stirs, you haul in your catch — and then you cook it. Together. Over a fire of coconut husks on a beach that most tourists will never set foot on. What you catch becomes breakfast: grilled fish, sambal, rice — the simplest and most satisfying meal you will have eaten in years.",
         highlights: [
             "Pre-dawn departure for the authentic fishing experience",
@@ -234,6 +234,106 @@ const SPOTLIGHT_EXPERIENCES: SpotlightExperience[] = [
         image: "/public/destinations/bomba/experience.webp",
         accent: "#22c55e",
     },
+    {
+        id: "hiking-viewpoints",
+        title: "Summit Hike & Panoramic Viewpoint",
+        subtitle: "Conquer the ridge of Padar Island for a view that defines Indonesia.",
+        location: "Padar Island, Komodo National Park",
+        category: "Adventure",
+        categoryEmoji: "⛰️",
+        filterCategory: "Trekking",
+        price: "Rp450.000",
+        rating: 4.94,
+        reviewCount: 261,
+        duration: "2.5 hours",
+        groupSize: "Max 10 guests",
+        hook: "Witness a 360° panorama of three differently coloured sand bays.",
+        description: "Padar Island's silhouette is one of Indonesia's most iconic images — three bays curving below a jagged ridge at dawn. The 45-minute hike to the summit is rewarded with a view that makes every step worthwhile. As the sun rises over the horizon, pink, black, and white sand beaches stretch out below you in perfect symmetry. This is the spot where phone cameras simply cannot capture the scale of what your eyes are seeing.",
+        highlights: [
+            "Iconic sunrise viewpoint overlooking three bays",
+            "Pink, black, and white sand beaches visible from one spot",
+            "Guided pre-dawn trek to beat the midday heat",
+            "Unbeatable photography opportunities",
+        ],
+        included: ["Ranger permit", "Sunrise briefing", "Packed breakfast", "Bottled water"],
+        image: "/public/programs/program-hiking-viewpoints.webp",
+        accent: "#ef4444",
+    },
+    {
+        id: "stargazing",
+        title: "Open-Ocean Stargazing Night",
+        subtitle: "Lie back far from any city light as the Milky Way arches across the sky.",
+        location: "Open Sea, Gulf of Tomini",
+        category: "Night Experience",
+        categoryEmoji: "🌌",
+        filterCategory: "Night Experience",
+        price: "Included",
+        rating: 4.96,
+        reviewCount: 204,
+        duration: "2 hours",
+        groupSize: "All guests",
+        hook: "Experience the equatorial night sky with absolute zero light pollution.",
+        description: "Beyond the reach of any light pollution, anchored in the Gulf of Tomini's mirror-glassy water, the stars reveal themselves in numbers that feel impossible. As the ship's lights are dimmed, the upper deck transforms into a floating observatory. Our guides share southern-hemisphere constellations and navigation lore, while Indonesian coffee and passing snacks complete a deeply peaceful night you will never forget.",
+        highlights: [
+            "Zero light pollution for crystal-clear Milky Way viewing",
+            "Unobstructed 360-degree views from the top deck",
+            "Southern-hemisphere constellation guidance",
+            "A peaceful, community atmosphere under the stars",
+        ],
+        included: ["Telescope access", "Constellation guide", "Indonesian coffee & snacks", "Deck blankets"],
+        image: "/public/programs/program-stargazing.webp",
+        accent: "#4f46e5",
+    },
+    {
+        id: "sunbathing-beach",
+        title: "Sunbathing on a Deserted Island",
+        subtitle: "A crescent of white sand with zero other visitors.",
+        location: "Pulau Puah, Togean Islands",
+        category: "Relaxation",
+        categoryEmoji: "🌴",
+        filterCategory: "Beach & Relaxation",
+        price: "Included",
+        rating: 4.89,
+        reviewCount: 156,
+        duration: "Half day",
+        groupSize: "All guests",
+        hook: "Just you, the coconut palms, and the open sea.",
+        description: "Some experiences need no agenda. Pulau Puah is a tiny uninhabited island visited almost exclusively by our liveaboards. You step ashore into golden silence — a perfect arc of white sand backed by leaning coconut palms. There are no beach clubs, no vendors, and no other footprints. Nothing to do but string up a hammock, sink a cold coconut, and let the gentle lap of the waves dictate the pace of your afternoon.",
+        highlights: [
+            "Exclusive access to an uninhabited tropical island",
+            "Pristine white sand beaches all to yourself",
+            "Crystal clear shallows perfect for a lazy dip",
+            "Hammocks set up beneath the shade of palm trees",
+        ],
+        included: ["Private beach access", "Hammock setup", "Fresh cold-pressed coconut water", "Beach towels"],
+        image: "/public/public/programs_real/sunbathing.webp",
+        accent: "#eab308",
+    },
+    {
+        id: "wildlife-spotting",
+        title: "Wildlife Spotting — Land & Sea",
+        subtitle: "See where the wild things are, guided by experts who know.",
+        location: "Komodo & Togean Islands",
+        category: "Wildlife",
+        categoryEmoji: "🦅",
+        filterCategory: "Wildlife",
+        price: "Included",
+        rating: 4.91,
+        reviewCount: 198,
+        duration: "Half day",
+        groupSize: "Max 10 guests",
+        hook: "From sea turtles surfacing at dusk to hornbills calling at dawn.",
+        description: "The archipelago comes alive when you know exactly what to look for — and how to find it without disturbing a thing. Our onboard naturalists have spent years tracking local migrations and nesting habits. Whether it's watching a dugong graze on seagrass, spotting rare endemic birds like the Togean Macaque, or identifying reef sharks on the hunt, this is unscripted nature unfolding right in front of you.",
+        highlights: [
+            "Guided spotting led by experienced naturalists",
+            "Encounters with endemic and rare Indonesian wildlife",
+            "Focus on non-intrusive, ethical observation",
+            "Access to high-quality binoculars and spotting scopes",
+        ],
+        included: ["Onboard naturalist guide", "Binoculars rental", "Wildlife logbook", "Refreshments"],
+        image: "/public/public/programs_real/wildlifespotting.webp",
+        accent: "#84cc16",
+    }
 ];
 
 interface Experience {
@@ -558,7 +658,7 @@ export default function ExperiencesPage({ }: Props) {
             ? formatPriceIDR(lowestCruisePrice)
             : 'Contact us';
 
-    // Scroll to spotlight card if URL has a hash (e.g. /activities#snorkeling-coral-garden)
+    // Scroll to spotlight card if URL has a hash (e.g. /experiences#snorkeling-coral-garden)
     useEffect(() => {
         const hash = window.location.hash.slice(1);
         if (!hash) return;
@@ -574,16 +674,38 @@ export default function ExperiencesPage({ }: Props) {
         return () => clearTimeout(timer);
     }, []);
 
-
-    const filteredSpotlight = activeCategory === "All"
-        ? SPOTLIGHT_EXPERIENCES
-        : SPOTLIGHT_EXPERIENCES.filter(e => e.filterCategory === activeCategory);
+    // Always render all spotlight experiences
+    const filteredSpotlight = SPOTLIGHT_EXPERIENCES;
 
     function handleCategoryChange(cat: Category) {
         setActiveCategory(cat);
+        
+        if (cat === "All") {
+             // If All is clicked, just scroll to the top of the grid
+             if (gridRef.current) {
+                 const offset = 140; // account for sticky navbar AND the sticky filter bar itself
+                 const top = gridRef.current.getBoundingClientRect().top + window.scrollY - offset;
+                 window.scrollTo({ top, behavior: "smooth" });
+             }
+             return;
+        }
+
+        // Find the first card that matches this category and scroll to it
         setTimeout(() => {
-            gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 80);
+            const selector = `[data-category="${cat}"]`;
+            const firstMatch = document.querySelector(selector) as HTMLElement;
+            
+            if (firstMatch) {
+                const offset = 140; // Account for main navbar + sticky filter bar height
+                const top = firstMatch.getBoundingClientRect().top + window.scrollY - offset;
+                window.scrollTo({ top, behavior: "smooth" });
+            } else if (gridRef.current) {
+                // Fallback to top of section if category has no cards
+                const offset = 140;
+                const top = gridRef.current.getBoundingClientRect().top + window.scrollY - offset;
+                window.scrollTo({ top, behavior: "smooth" });
+            }
+        }, 50);
     }
 
     return (
@@ -619,12 +741,12 @@ export default function ExperiencesPage({ }: Props) {
                             Every cruise comes loaded with guided experiences — from sleeping beneath the Milky Way to swimming with stingless jellyfish, trekking beside Komodo dragons, and dining with sea-nomad families on stilted villages above the turquoise sea.
                         </p>
                         <div className="exp-hero-actions">
-                            <LocaleLink href={localizePath("/cruises", locale)} className="exp-hero-btn exp-hero-btn--primary">
+                            <a href="#experiences" className="exp-hero-btn exp-hero-btn--primary">
                                 Explore Experiences ↓
-                            </LocaleLink>
-                            <a href="#experiences" className="exp-hero-btn exp-hero-btn--ghost">
-                                Browse Cruises
                             </a>
+                            <LocaleLink href={localizePath("/cruises", locale)} className="exp-hero-btn exp-hero-btn--ghost">
+                                Browse Cruises
+                            </LocaleLink>
                         </div>
                     </div>
                 </div>
@@ -676,6 +798,7 @@ export default function ExperiencesPage({ }: Props) {
                             <div
                                 key={exp.id}
                                 id={exp.id}
+                                data-category={exp.filterCategory}
                                 className={`exp-spot-card${i % 2 === 1 ? " exp-spot-card--rev" : ""}`}
                             >
                                 {/* Image side */}
@@ -691,7 +814,7 @@ export default function ExperiencesPage({ }: Props) {
                                         <div className="exp-spot-img-overlay" />
                                         <div className="exp-spot-badges">
                                             <span className="exp-spot-cat-badge">
-                                                {exp.categoryEmoji} {exp.category}
+                                                {exp.category}
                                             </span>
                                             <span className="exp-spot-price-badge">
                                                 Cruise from {priceDisplay} <span>/pax</span>

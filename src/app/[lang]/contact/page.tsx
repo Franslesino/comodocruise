@@ -15,8 +15,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const { lang } = await params;
     
     return {
-        title: `Contact - COMODOCRUISE - ${LOCALE_NAMES[lang]}`,
-        description: "Get in touch with COMODOCRUISE for bookings and inquiries.",
+        title: `Contact - KOMODOCRUISES - ${LOCALE_NAMES[lang]}`,
+        description: "Get in touch with KOMODOCRUISES for bookings and inquiries.",
     };
 }
 
@@ -31,7 +31,7 @@ export default async function ContactPage({ params }: PageProps) {
                         Contact Us
                     </h1>
                     <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-                        Get in touch with COMODOCRUISE for bookings and inquiries. More content coming soon!
+                        Get in touch with KOMODOCRUISES for bookings and inquiries. More content coming soon!
                     </p>
                     
                     <div className="bg-white rounded-xl shadow-lg p-8 max-w-md mx-auto">

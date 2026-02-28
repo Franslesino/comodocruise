@@ -1,13 +1,13 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
-import SearchResults from "@/components/SearchResults";
+import CruisesPage from "@/components/CruisesPage";
 
 export const metadata: Metadata = {
-    title: "Cruise Packages - COMODOCRUISE",
+    title: "Cruise Packages - KOMODOCRUISES",
     description: "Discover our exclusive cruise packages to pristine destinations.",
 };
 
-export default function CruisesPage() {
+export default function CruisesRoutePage() {
     return (
         <Suspense
             fallback={
@@ -19,7 +19,7 @@ export default function CruisesPage() {
                 </div>
             }
         >
-            <SearchResults showHero />
+            <CruisesPage />
         </Suspense>
     );
 }

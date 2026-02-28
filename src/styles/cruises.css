@@ -16,7 +16,7 @@
     min-height: 500px;
     max-height: 700px;
     overflow: hidden;
-    margin-bottom: 0;
+    margin-bottom: 0.5rem;
     display: flex;
     flex-direction: column;
 }
@@ -100,12 +100,12 @@
 /* Left-aligned hero variant */
 .cruises-hero-content--left {
     left: 0;
-    top: 55%;
+    top: 50%;
     bottom: auto;
     transform: translateY(-50%);
     text-align: left;
     align-items: flex-start;
-    padding: 0 max(2rem, 5vw);
+    padding: 2rem max(2rem, 5vw);
     max-width: 700px;
 }
 
@@ -1555,8 +1555,25 @@
         font-size: 1.1rem;
     }
 
+    .cruises-hero-breadcrumb {
+        margin-top: -1.5rem;
+    }
+
     .cruises-hero-content {
         padding: 2rem 1.5rem;
+    }
+
+    .cruises-hero-btn,
+    .cruises-hero-badge {
+        align-self: flex-start;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .cruises-hero-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
     }
 
     .horizontal-filters-bar {

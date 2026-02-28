@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const { lang } = await params;
     
     return {
-        title: `Ships - COMODOCRUISE - ${LOCALE_NAMES[lang]}`,
+        title: `Ships - KOMODOCRUISES - ${LOCALE_NAMES[lang]}`,
         description: "Discover our fleet of luxury cruise ships.",
     };
 }

@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Special Deals - COMODOCRUISE",
+    title: "Special Deals - KOMODOCRUISES",
     description: "Discover exclusive cruise deals and special offers for Indonesian destinations.",
 };
 
