@@ -441,8 +441,6 @@ export default function DestinationAboutPage({ slug }: Props) {
                     <nav className="da-breadcrumb" aria-label="Breadcrumb">
                         <LocaleLink href={localizePath("/", locale)} className="da-bc-link">Home</LocaleLink>
                         <ChevronRightIcon className="da-bc-sep" />
-                        <LocaleLink href={localizePath("/destinations", locale)} className="da-bc-link">Destinations</LocaleLink>
-                        <ChevronRightIcon className="da-bc-sep" />
                         <span className="da-bc-current">{data.displayName}</span>
                     </nav>
                     <div className="da-hero-text">

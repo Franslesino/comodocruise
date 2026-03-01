@@ -258,14 +258,15 @@
     background: #fff;
     border-bottom: 1.5px solid #e8f0f8;
     position: sticky;
-    top: 80px;
+    top: 64px;
     z-index: 30;
     box-shadow: 0 2px 12px rgba(9, 37, 63, 0.06);
 }
 
 @media (max-width: 640px) {
     .exp-filter-bar {
-        top: 48px; /* Matched perfectly to py-2 + h-8 logo height in Navbar.tsx */
+        top: 48px;
+        /* Matched perfectly to py-2 + h-8 logo height in Navbar.tsx */
     }
 }
 

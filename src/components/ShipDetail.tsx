@@ -349,9 +349,6 @@ export default function ShipDetail({ slug }: { slug: string }) {
 
         const dateStr = toLocalDateStr(date);
 
-        // Check if date is available
-        if (!shipAvailableDates.includes(dateStr)) return;
-
         // Range selection logic
         if (!selectedDateRange || selectedDateRange.dateTo) {
             // Start new range
@@ -838,7 +835,7 @@ export default function ShipDetail({ slug }: { slug: string }) {
                                     </svg>
                                     <span>
                                         {selectedDateRange
-                                            ? `${new Date(selectedDateRange.dateFrom).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(selectedDateRange.dateTo).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                                            ? `${new Date(selectedDateRange.dateFrom).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}${selectedDateRange.dateTo ? ` - ${new Date(selectedDateRange.dateTo).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ''}`
                                             : 'Select dates'
                                         }
                                     </span>

@@ -288,7 +288,7 @@ export default function DestinationSection() {
                                     </div>
                                 )}
                                 {activeDest.operators.slice(0, 2).map((ship, index) => (
-                                    <div key={`${ship.id}-${index}`} className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors">
+                                    <LocaleLink key={`${ship.id}-${index}`} href={`/cruises/${ship.slug}`} className="block bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors cursor-pointer">
                                         <div className="flex gap-4">
                                             {/* Ship Image */}
                                             <div className="relative w-32 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-blue-100 to-teal-100">
@@ -306,7 +306,10 @@ export default function DestinationSection() {
                                                     </div>
                                                 )}
                                                 {/* Wishlist heart */}
-                                                <button className="absolute top-1.5 right-1.5 w-6 h-6 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors">
+                                                <button
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                                    className="absolute top-1.5 right-1.5 w-6 h-6 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors"
+                                                >
                                                     <HeartIcon className="w-3.5 h-3.5 text-gray-500" />
                                                 </button>
                                             </div>
@@ -372,15 +375,9 @@ export default function DestinationSection() {
                                                         </p>
                                                     </div>
                                                 )}
-                                                <LocaleLink
-                                                    href={`/cruises/${ship.slug}`}
-                                                    className="px-4 py-1.5 bg-amber-400 hover:bg-amber-500 text-gray-900 rounded-full text-xs font-bold transition-colors shrink-0 mb-0.5"
-                                                >
-                                                    Details
-                                                </LocaleLink>
                                             </div>
                                         </div>
-                                    </div>
+                                    </LocaleLink>
                                 ))}
                             </div>
 
